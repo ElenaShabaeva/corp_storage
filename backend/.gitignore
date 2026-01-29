@@ -1,0 +1,14 @@
+.venv/
+.idea/
+.env
+alembic.ini
+migration/README
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+attachments/
+private_key.pem
+public_key.pem
+cert.key
+cert.crt
