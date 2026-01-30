@@ -10,6 +10,7 @@ from schemas.response.user_response import RegAuthResponseSchema
 from schemas.internal.token_schema import TokenInfoSchema
 from schemas.request.user_request import LoginRequestSchema
 from jwt import ExpiredSignatureError
+from schemas.response.user_response import UserInfoResponseSchema
 
 
 class UserService:
@@ -84,7 +85,7 @@ class UserService:
             )
         )
 
-    async def refresh_tokens(self, response: Response, refresh_token: str | None):
+    async def refresh_tokens(self, response: Response, refresh_token: str | None) -> RegAuthResponseSchema:
         if not refresh_token:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -119,6 +120,32 @@ class UserService:
                 )
             )
 
+        except ExpiredSignatureError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Токен истек"
+            )
+
+    async def get_profile(self, encoded_jwt: str | None) -> UserInfoResponseSchema:
+        if not encoded_jwt:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Токен не найден"
+            )
+        try:
+            user_id = decode_jwt(token=encoded_jwt)
+            user = await self.user_repository.get_by_id(user_id=user_id)
+            if not user:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Пользователь не найден"
+                )
+            return UserInfoResponseSchema(
+                id=user.id,
+                name=user.name,
+                surname=user.surname,
+                login=user.login
+            )
         except ExpiredSignatureError:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
