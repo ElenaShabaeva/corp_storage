@@ -25,7 +25,8 @@ def encode_jwt(
     expiration_time = now + timedelta(minutes=expiration_minutes)
     payload.update({
         "exp": int(expiration_time.timestamp()),
-        "iat": int(now.timestamp())
+        "iat": int(now.timestamp()),
+        "jti": str(uuid.uuid4())
     })
     encoded = jwt.encode(
         payload,
@@ -47,7 +48,7 @@ def decode_jwt(
             algorithms=[algorithm],
             leeway=10
         )
-        return uuid.UUID(decoded["sub"])
+        return uuid.UUID(decoded["sub"]), decoded["jti"]
     except DecodeError as e:
         raise e
 
