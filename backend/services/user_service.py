@@ -38,11 +38,12 @@ class UserService:
             password=hasher.get_hash(item=payload.password)
         )
 
-        access_token, _ = generate_token(user_id=user.id, token_type=TokenType.ACCESS)
-        refresh_token, expires_at = generate_token(user_id=user.id, token_type=TokenType.REFRESH)
+        access_token, _, _ = generate_token(user_id=user.id, token_type=TokenType.ACCESS)
+        refresh_token, expires_at, jti = generate_token(user_id=user.id, token_type=TokenType.REFRESH)
 
         await self.refresh_token_repository.post(
             token_hash=hasher.get_hash(item=refresh_token),
+            jti=jti,
             user_id=user.id,
             expires_at=expires_at
         )
@@ -77,11 +78,12 @@ class UserService:
                 detail="Неправильно введен логин или пароль"
             )
 
-        access_token, _ = generate_token(user_id=user.id, token_type=TokenType.ACCESS)
-        refresh_token, expires_at = generate_token(user_id=user.id, token_type=TokenType.REFRESH)
+        access_token, _, _ = generate_token(user_id=user.id, token_type=TokenType.ACCESS)
+        refresh_token, expires_at, jti = generate_token(user_id=user.id, token_type=TokenType.REFRESH)
 
         await self.refresh_token_repository.post(
             token_hash=hasher.get_hash(item=refresh_token),
+            jti=jti,
             user_id=user.id,
             expires_at=expires_at
         )
@@ -110,16 +112,26 @@ class UserService:
                 detail="Refresh token не найден"
             )
         try:
-            user_id = decode_jwt(token=refresh_token)
-            user = await self.user_repository.get_by_id(user_id=user_id)
-            if not user:
+            user_id, jti = decode_jwt(token=refresh_token)
+            old_refresh_token = await self.refresh_token_repository.get_by_jti(
+                jti=jti
+            )
+            if not old_refresh_token:
                 raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Пользователь не найден"
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="Токен не найден в базе данных"
                 )
+            await self.refresh_token_repository.set_revoked_at(refresh_token=old_refresh_token)
 
-            access_token = generate_token(user_id=user.id, token_type=TokenType.ACCESS)
-            refresh_token = generate_token(user_id=user.id, token_type=TokenType.REFRESH)
+            access_token, _, _ = generate_token(user_id=user_id, token_type=TokenType.ACCESS)
+            refresh_token, expires_at, jti = generate_token(user_id=user_id, token_type=TokenType.REFRESH)
+
+            await self.refresh_token_repository.post(
+                token_hash=hasher.get_hash(item=refresh_token),
+                jti=jti,
+                user_id=user_id,
+                expires_at=expires_at
+            )
 
             response.set_cookie(
                 key="refresh_token",
@@ -131,7 +143,7 @@ class UserService:
             )
 
             return RegAuthResponseSchema(
-                id=user.id,
+                id=user_id,
                 token_info=TokenInfoSchema(
                     token=access_token,
                     token_type="Bearer"
