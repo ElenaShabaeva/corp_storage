@@ -1,6 +1,7 @@
 from database.database import Base
 from sqlalchemy import Column, String, func
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
 
 
 class User(Base):
@@ -11,3 +12,5 @@ class User(Base):
     surname = Column(String)
     login = Column(String)
     password = Column(String)
+
+    refresh_tokens = relationship("RefreshToken", back_populates="user")
