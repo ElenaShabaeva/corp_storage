@@ -8,9 +8,9 @@ class User(Base):
     __tablename__ = "user"
     id = Column(UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
 
-    name = Column(String)
-    surname = Column(String)
-    login = Column(String)
-    password = Column(String)
+    name = Column(String, nullable=False)
+    surname = Column(String, nullable=False)
+    login = Column(String, nullable=False, unique=True)
+    password = Column(String, nullable=False)
 
     refresh_tokens = relationship("RefreshToken", back_populates="user")
