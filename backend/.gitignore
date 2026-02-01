@@ -12,3 +12,4 @@ private_key.pem
 public_key.pem
 cert.key
 cert.crt
+*.orig
