@@ -13,4 +13,4 @@ class User(Base):
     login = Column(String, nullable=False, unique=True)
     password = Column(String, nullable=False)
 
-    refresh_tokens = relationship("RefreshToken", back_populates="user")
+    refresh_tokens = relationship("RefreshToken", back_populates="user", cascade="all, delete-orphan")
