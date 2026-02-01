@@ -32,7 +32,7 @@ def encode_jwt(
         private_key,
         algorithm=algorithm
     )
-    return encoded
+    return encoded, expiration_time
 
 
 def decode_jwt(
