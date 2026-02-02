@@ -33,5 +33,27 @@ export const useAuthStore = defineStore("auth", () => {
     }
   }
 
-  return { token, isLoggedIn, registration, loading, serverError, fieldError }
+  async function authorization(user) {
+    try {
+      loading.value = true;
+      serverError.value = "";
+      fieldError.value = "";
+
+      const data = await authService.authorization(user);
+      token.value = data.token_info.token
+      localStorage.setItem("token", data.token_info.token)
+    } catch (e) {
+      
+      if (e.message === 'Неправильный логин или пароль') {
+        fieldError.value = e.message;
+      } else {
+        serverError.value = "Не удалось войти в аккаунт";
+      }
+      throw e;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  return { token, isLoggedIn, registration, authorization, loading, serverError, fieldError }
 });
