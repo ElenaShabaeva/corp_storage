@@ -4,7 +4,7 @@
     <RegistrationForm />
     <div class="registration__block">
       <span class="registration__text">У вас уже есть аккаунт?</span>
-      <router-link class="link">Войти в аккаунт</router-link>
+      <router-link class="link" to="/">Войти в аккаунт</router-link>
     </div>
   </div>
   <Loading :title="'Идет регистрация'" v-if="store.loading" />
