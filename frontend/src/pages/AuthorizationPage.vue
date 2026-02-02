@@ -1,13 +1,13 @@
 <template>
   <div class="registration">
-    <h1 class="title">Регистрация</h1>
-    <RegistrationForm />
+    <h1 class="title">Авторизация</h1>
+    <AuthorizationForm />
     <div class="registration__block">
-      <span class="registration__text">У вас уже есть аккаунт?</span>
-      <router-link class="link" to="/">Войти в аккаунт</router-link>
+      <span class="registration__text">У вас еще нет аккаунта?</span>
+      <router-link class="link" to="/registration">Зарегистрироваться</router-link>
     </div>
   </div>
-  <Loading :title="'Идет регистрация'" v-if="store.loading" />
+  <Loading :title="'Идет вход в аккаунт'" v-if="store.loading" />
   <Transition name="modal" appear v-if="!store.loading && store.serverError">
     <div class="modal" :class="{ 'modal--error': store.serverError }">
       {{ store.serverError }}
@@ -16,8 +16,8 @@
 </template>
 
 <script setup>
+import AuthorizationForm from "../components/AuthorizationForm.vue";
 import Loading from "../components/Loading.vue";
-import RegistrationForm from "../components/RegistrationForm.vue";
 import { useAuthStore } from "../store/auth";
 
 const store = useAuthStore();
