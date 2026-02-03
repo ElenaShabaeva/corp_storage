@@ -13,3 +13,8 @@ class UserInfoResponseSchema(BaseModel):
     name: str
     surname: str
     login: str
+
+
+class LogoutResponseSchema(BaseModel):
+    status: str
+    message: str

@@ -12,7 +12,8 @@ from schemas.request.user_request import (
     LoginRequestSchema
 )
 from schemas.response.user_response import (
-    RegAuthResponseSchema
+    RegAuthResponseSchema,
+    LogoutResponseSchema
 )
 from jwt import ExpiredSignatureError
 from schemas.response.user_response import UserInfoResponseSchema
@@ -105,6 +106,29 @@ class UserService:
             )
         )
 
+    async def logout(self, response: Response, encoded_jwt: str | None) -> LogoutResponseSchema:
+        if not encoded_jwt:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Токен не найден"
+            )
+        try:
+            _, jti = decode_jwt(token=encoded_jwt)
+            refresh_token = await self.refresh_token_repository.get_by_jti(jti=jti)
+            await self.refresh_token_repository.set_revoked_at(refresh_token=refresh_token)
+
+            response.delete_cookie(key="refresh_token", secure=True, samesite='none', httponly=True)
+
+            return LogoutResponseSchema(
+                status="success",
+                message="Выход был успешно завершен"
+            )
+        except ExpiredSignatureError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Токен истек"
+            )
+
     async def refresh_tokens(self, response: Response, refresh_token: str | None) -> RegAuthResponseSchema:
         if not refresh_token:
             raise HTTPException(
@@ -163,7 +187,7 @@ class UserService:
                 detail="Токен не найден"
             )
         try:
-            user_id = decode_jwt(token=encoded_jwt)
+            user_id, _ = decode_jwt(token=encoded_jwt)
             user = await self.user_repository.get_by_id(user_id=user_id)
             if not user:
                 raise HTTPException(

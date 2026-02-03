@@ -1,11 +1,17 @@
 from fastapi import APIRouter, Response, Depends, Cookie
 from services.user_service import UserService
 from dependencies import get_user_service
-from schemas.request.user_request import RegistrationRequestSchema, LoginRequestSchema
-from schemas.response.user_response import RegAuthResponseSchema
 from fastapi.security import HTTPAuthorizationCredentials
 from configuration import settings
-from schemas.response.user_response import UserInfoResponseSchema
+from schemas.request.user_request import (
+    RegistrationRequestSchema,
+    LoginRequestSchema
+)
+from schemas.response.user_response import (
+    UserInfoResponseSchema,
+    LogoutResponseSchema,
+    RegAuthResponseSchema
+)
 
 
 router = APIRouter(
@@ -30,6 +36,15 @@ async def login(
         user_service: UserService = Depends(get_user_service)
 ):
     return await user_service.login(response=response, payload=payload)
+
+
+@router.get("/logout", response_model=LogoutResponseSchema)
+async def logout(
+        response: Response,
+        credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
+        user_service: UserService = Depends(get_user_service)
+):
+    return await user_service.logout(response=response, encoded_jwt=credentials.credentials)
 
 
 @router.get("/refresh", response_model=RegAuthResponseSchema)
