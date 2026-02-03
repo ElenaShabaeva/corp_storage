@@ -40,6 +40,37 @@ class AuthService {
     
     return data;
   }
+
+  async logout() {
+    const response = await fetch(`${API_URL}/user/logout`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {"Content-Type": "application/json"}
+    })
+
+    if (!response.ok) {
+      throw new Error('Не удалось выйти из аккаунта');
+    }
+  }
+
+  async refresh() {
+    const response = await fetch(`${API_URL}/user/refresh`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {"Content-Type": "application/json"}
+    })
+
+    const data = await response.json()
+
+    if(!response.ok) {
+      if (response.status === 401) {
+        throw new Error('Не удалось обновить токен')
+      }
+      throw new Error('Ошибка сервера')
+    }
+
+    return data
+  }
 }
 
 export default new AuthService();
