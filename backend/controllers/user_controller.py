@@ -1,4 +1,10 @@
-from fastapi import APIRouter, Response, Depends, Cookie
+from fastapi import (
+    APIRouter,
+    Response,
+    Depends,
+    Cookie,
+    Request
+)
 from services.user_service import UserService
 from dependencies import get_user_service
 from fastapi.security import HTTPAuthorizationCredentials
@@ -41,10 +47,10 @@ async def login(
 @router.get("/logout", response_model=LogoutResponseSchema)
 async def logout(
         response: Response,
-        credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
+        request: Request,
         user_service: UserService = Depends(get_user_service)
 ):
-    return await user_service.logout(response=response, encoded_jwt=credentials.credentials)
+    return await user_service.logout(response=response, request=request)
 
 
 @router.get("/refresh", response_model=RegAuthResponseSchema)

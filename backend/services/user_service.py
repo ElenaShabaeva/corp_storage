@@ -1,7 +1,12 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from repository.user_repository import UserRepository
 from repository.refresh_token_repository import RefreshTokenRepository
-from fastapi import Response, HTTPException, status
+from fastapi import (
+    Response,
+    HTTPException,
+    status,
+    Request
+)
 from utils.hasher import hasher
 from utils.jwt_utils import generate_token, decode_jwt
 from utils.TokenTypeEnum import TokenType
@@ -17,6 +22,7 @@ from schemas.response.user_response import (
 )
 from jwt import ExpiredSignatureError
 from schemas.response.user_response import UserInfoResponseSchema
+import logging
 
 
 class UserService:
@@ -106,14 +112,15 @@ class UserService:
             )
         )
 
-    async def logout(self, response: Response, encoded_jwt: str | None) -> LogoutResponseSchema:
-        if not encoded_jwt:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Токен не найден"
-            )
+    async def logout(self, response: Response, request: Request) -> LogoutResponseSchema:
         try:
-            _, jti = decode_jwt(token=encoded_jwt)
+            refresh_token = request.cookies.get("refresh_token")
+            if not refresh_token:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Refresh токен не найден"
+                )
+            _, jti = decode_jwt(token=refresh_token)
             refresh_token = await self.refresh_token_repository.get_by_jti(jti=jti)
             await self.refresh_token_repository.set_revoked_at(refresh_token=refresh_token)
 
