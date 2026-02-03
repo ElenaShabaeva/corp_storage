@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
+import { useAuthStore } from "../store/auth";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -16,6 +17,25 @@ const router = createRouter({
       meta: { requiresAuth: false },
     },
   ],
+});
+
+router.beforeEach((to, from, next) => {
+  const store = useAuthStore();
+
+  if (to.meta.requiresAuth && !store.token) {
+    next({
+      name: "login",
+      query: { redirect: to.fullPath },
+    });
+    return;
+  }
+
+  if (store.token && (to.name === "login" || to.name === "registration")) {
+    next({ name: "project" });
+    return;
+  }
+
+  next();
 });
 
 export default router;
