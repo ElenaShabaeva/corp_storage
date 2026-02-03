@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import authService from "../services/auth.service";
+import router from "../router";
 
 export const useAuthStore = defineStore("auth", () => {
   const token = ref(localStorage.getItem("token") || null)
@@ -55,5 +56,40 @@ export const useAuthStore = defineStore("auth", () => {
     }
   }
 
-  return { token, isLoggedIn, registration, authorization, loading, serverError, fieldError }
+  async function logout() {
+    try {
+      loading.value = true
+      serverError.value = ""
+
+      await authService.logout()
+
+      token.value = null
+      localStorage.removeItem('token')
+
+      router.push({name: 'login'})
+    } catch(e) {
+      serverError.value = e.message
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function refresh() {
+    try {
+      const data = await authService.refresh()
+
+      const newToken = data.token_info.token
+      token.value = newToken
+      localStorage.setItem('token')
+
+      return newToken
+    } catch(e) {
+      token.value = null
+      localStorage.removeItem('token')
+
+      router.push({name: 'login'})
+    }
+  }
+
+  return { token, isLoggedIn, registration, authorization, logout, refresh, loading, serverError, fieldError }
 });
