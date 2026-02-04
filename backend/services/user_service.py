@@ -22,7 +22,8 @@ from schemas.request.user_request import (
 )
 from schemas.response.user_response import (
     RegAuthResponseSchema,
-    LogoutResponseSchema
+    LogoutResponseSchema,
+    UserDeleteResponseSchema
 )
 
 
@@ -234,6 +235,26 @@ class UserService:
                 name=updated_user.name,
                 surname=updated_user.surname,
                 login=updated_user.login
+            )
+        except ExpiredSignatureError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Токен истек"
+            )
+
+    async def delete_profile(self, encoded_jwt: str | None, response: Response) -> UserDeleteResponseSchema:
+        if not encoded_jwt:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Токен не найден"
+            )
+        try:
+            user_id, _ = decode_jwt(token=encoded_jwt)
+            rowcount = await self.user_repository.delete(user_id=user_id)
+            response.delete_cookie("refresh_token")
+            return UserDeleteResponseSchema(
+                status="success",
+                rowcount=rowcount
             )
         except ExpiredSignatureError:
             raise HTTPException(

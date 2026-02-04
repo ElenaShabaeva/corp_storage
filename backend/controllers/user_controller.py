@@ -17,7 +17,8 @@ from schemas.request.user_request import (
 from schemas.response.user_response import (
     UserInfoResponseSchema,
     LogoutResponseSchema,
-    RegAuthResponseSchema
+    RegAuthResponseSchema,
+    UserDeleteResponseSchema
 )
 
 
@@ -78,3 +79,12 @@ async def update_profile(
         user_service: UserService = Depends(get_user_service)
 ):
     return await user_service.update_profile(payload=payload, encoded_jwt=credentials.credentials)
+
+
+@router.delete("/delete", response_model=UserDeleteResponseSchema)
+async def delete_profile(
+        response: Response,
+        credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
+        user_service: UserService = Depends(get_user_service)
+):
+    return await user_service.delete_profile(encoded_jwt=credentials.credentials, response=response)
