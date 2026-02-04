@@ -12,17 +12,18 @@ from utils.jwt_utils import generate_token, decode_jwt
 from utils.TokenTypeEnum import TokenType
 from configuration import settings
 from schemas.internal.token_schema import TokenInfoSchema
+from jwt import ExpiredSignatureError
+from schemas.response.user_response import UserInfoResponseSchema
+import logging
 from schemas.request.user_request import (
     RegistrationRequestSchema,
-    LoginRequestSchema
+    LoginRequestSchema,
+    UserPatchRequestSchema
 )
 from schemas.response.user_response import (
     RegAuthResponseSchema,
     LogoutResponseSchema
 )
-from jwt import ExpiredSignatureError
-from schemas.response.user_response import UserInfoResponseSchema
-import logging
 
 
 class UserService:
@@ -206,6 +207,33 @@ class UserService:
                 name=user.name,
                 surname=user.surname,
                 login=user.login
+            )
+        except ExpiredSignatureError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Токен истек"
+            )
+
+    async def update_profile(self, payload: UserPatchRequestSchema, encoded_jwt: str | None) -> UserInfoResponseSchema:
+        if not encoded_jwt:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Токен не найден"
+            )
+        try:
+            user_id, _ = decode_jwt(token=encoded_jwt)
+            user = await self.user_repository.get_by_id(user_id=user_id)
+            if payload.name:
+                user.name = payload.name
+            if payload.surname:
+                user.surname = payload.surname
+            updated_user = await self.user_repository.patch(updated_user=user)
+
+            return UserInfoResponseSchema(
+                id=updated_user.id,
+                name=updated_user.name,
+                surname=updated_user.surname,
+                login=updated_user.login
             )
         except ExpiredSignatureError:
             raise HTTPException(

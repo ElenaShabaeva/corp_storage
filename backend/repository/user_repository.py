@@ -33,3 +33,9 @@ class UserRepository:
     async def get_by_id(self, user_id: UUID) -> User | None:
         result = await self.db.execute(select(User).where(User.id == user_id))
         return result.scalar_one_or_none()
+
+    async def patch(self, updated_user: User) -> User:
+        self.db.add(updated_user)
+        await self.db.commit()
+        await self.db.refresh(updated_user)
+        return updated_user
