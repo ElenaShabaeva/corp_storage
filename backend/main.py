@@ -2,6 +2,14 @@ from fastapi import FastAPI
 from database.database import engine, Base
 from fastapi.middleware.cors import CORSMiddleware
 from controllers.routers import router
+import logging
+import sys
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(name)s %(levelname)s: %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)]
+)
 
 app = FastAPI()
 app.include_router(router)

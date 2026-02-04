@@ -23,16 +23,18 @@ def encode_jwt(
         raise ValueError(f"Неизвестный тип токена")
 
     expiration_time = now + timedelta(minutes=expiration_minutes)
+    jti = uuid.uuid4()
     payload.update({
         "exp": int(expiration_time.timestamp()),
-        "iat": int(now.timestamp())
+        "iat": int(now.timestamp()),
+        "jti": str(jti)
     })
     encoded = jwt.encode(
         payload,
         private_key,
         algorithm=algorithm
     )
-    return encoded, expiration_time
+    return encoded, expiration_time, jti
 
 
 def decode_jwt(
@@ -47,7 +49,7 @@ def decode_jwt(
             algorithms=[algorithm],
             leeway=10
         )
-        return uuid.UUID(decoded["sub"])
+        return uuid.UUID(decoded["sub"]), decoded["jti"]
     except DecodeError as e:
         raise e
 
