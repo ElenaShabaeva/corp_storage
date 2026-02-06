@@ -35,11 +35,11 @@ const updateInput = (event) => {
     color: @text-tertiary;
   }
 
-  &:focus{
+  &:not(.input--disabled):focus{
     border-color: @blue;
   }
 
-  &:not(:disabled):hover {
+  &:not(.input--disabled):hover {
     border-color: @blue;
   }
 
@@ -50,6 +50,7 @@ const updateInput = (event) => {
   &--disabled {
     color: @text-tertiary;
     background-color: @disable;
+    pointer-events: none;
   }
 }
 </style>
