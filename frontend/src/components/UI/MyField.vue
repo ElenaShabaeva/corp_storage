@@ -12,6 +12,7 @@
       :required="requared"
       v-model="fieldValue"
       v-bind="$attrs"
+      :disabled="disabled"
       autocomplete="off"
       @blur="$emit('blur', $event)"
     />
