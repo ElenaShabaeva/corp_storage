@@ -21,6 +21,8 @@ export const useAuthStore = defineStore("auth", () => {
       const data = await authService.registration(user);
       token.value = data.token_info.token
       localStorage.setItem("token", data.token_info.token)
+      
+      router.push({name: 'profile'})
     } catch (e) {
       
       if (e.message === 'Пользователь с таким "Логин" уже существует') {
@@ -43,6 +45,8 @@ export const useAuthStore = defineStore("auth", () => {
       const data = await authService.authorization(user);
       token.value = data.token_info.token
       localStorage.setItem("token", data.token_info.token)
+
+      router.push({name: 'profile'})
     } catch (e) {
       
       if (e.message === 'Неправильный логин или пароль') {
