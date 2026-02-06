@@ -5,11 +5,11 @@
         <SvgLogo />
         CorpStorage
       </div>
-      <nav class="header__nav" v-if="isAuth">
+      <nav class="header__nav" v-if="isLoggedIn">
         <div class="header__nav-block">
           <ul class="header__links">
             <li class="header__link">Проекты</li>
-            <li class="header__link">Профиль</li>
+            <router-link class="link" to="/profile">Профиль</router-link>
           </ul>
         </div>
         <div class="header__nav-block">
@@ -24,7 +24,13 @@
 </template>
 
 <script setup>
+import { storeToRefs } from "pinia";
 import SvgLogo from "../assets/svg/SvgLogo.vue";
+import { useAuthStore } from "../store/auth";
+
+const store = useAuthStore()
+const { isLoggedIn } = storeToRefs(store)
+
 </script>
 
 <style lang="less">
