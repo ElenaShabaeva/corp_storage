@@ -15,7 +15,7 @@
         <div class="header__nav-block">
           <ul class="header__links">
             <li class="header__link">Уведомления</li>
-            <li class="header__link">Выйти</li>
+            <router-link class="link" to="/" @click.prevent="handleLogout">Выйти</router-link>
           </ul>
         </div>
       </nav>
@@ -31,6 +31,11 @@ import { useAuthStore } from "../store/auth";
 const store = useAuthStore()
 const { isLoggedIn } = storeToRefs(store)
 
+async function handleLogout() {
+  try {
+    await store.logout()
+  } catch(e) {}
+}
 </script>
 
 <style lang="less">
