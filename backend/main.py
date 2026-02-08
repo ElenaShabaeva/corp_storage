@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from controllers.routers import router
 import logging
 import sys
+import os
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -13,7 +14,9 @@ logging.basicConfig(
 
 app = FastAPI()
 app.include_router(router)
-origins = ["*"]
+origins = [
+    os.getenv("FRONTEND_URL")
+]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -21,3 +24,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(
+        "main:app",
+        host="26.122.80.20",
+        port=8000,
+        ssl_certfile=os.getenv("CERT_FILE"),
+        ssl_keyfile=os.getenv("KEY_FILE"),
+        ssl_keyfile_password=os.getenv("SSL_KEYFILE_PASSWORD")
+    )

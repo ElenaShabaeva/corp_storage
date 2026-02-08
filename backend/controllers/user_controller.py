@@ -11,12 +11,14 @@ from fastapi.security import HTTPAuthorizationCredentials
 from configuration import settings
 from schemas.request.user_request import (
     RegistrationRequestSchema,
-    LoginRequestSchema
+    LoginRequestSchema,
+    UserPatchRequestSchema
 )
 from schemas.response.user_response import (
     UserInfoResponseSchema,
     LogoutResponseSchema,
-    RegAuthResponseSchema
+    RegAuthResponseSchema,
+    UserDeleteResponseSchema
 )
 
 
@@ -68,3 +70,26 @@ async def get_profile(
         credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer)
 ):
     return await user_service.get_profile(encoded_jwt=credentials.credentials)
+
+
+@router.patch("/update", response_model=UserInfoResponseSchema)
+async def update_profile(
+        payload: UserPatchRequestSchema,
+        credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
+        user_service: UserService = Depends(get_user_service)
+):
+    return await user_service.update_profile(payload=payload, encoded_jwt=credentials.credentials)
+
+
+@router.delete("/delete", response_model=UserDeleteResponseSchema)
+async def delete_profile(
+        response: Response,
+        refresh_token: str | None = Cookie(default=None, alias="refresh_token"),
+        credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
+        user_service: UserService = Depends(get_user_service)
+):
+    return await user_service.delete_profile(
+        encoded_jwt=credentials.credentials,
+        response=response,
+        refresh_token=refresh_token
+    )

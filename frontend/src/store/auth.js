@@ -4,13 +4,12 @@ import authService from "../services/auth.service";
 import router from "../router";
 
 export const useAuthStore = defineStore("auth", () => {
-  const token = ref(localStorage.getItem("token") || null)
-  const isLoggedIn = computed(() => !!token.value)
+  const token = ref(localStorage.getItem("token") || null);
+  const isLoggedIn = computed(() => !!token.value);
 
   const loading = ref(false);
   const serverError = ref("");
   const fieldError = ref("");
-
 
   async function registration(user) {
     try {
@@ -19,12 +18,11 @@ export const useAuthStore = defineStore("auth", () => {
       fieldError.value = "";
 
       const data = await authService.registration(user);
-      token.value = data.token_info.token
-      localStorage.setItem("token", data.token_info.token)
-      
-      router.push({name: 'profile'})
+      token.value = data.token_info.token;
+      localStorage.setItem("token", data.token_info.token);
+
+      router.push({ name: "profile" });
     } catch (e) {
-      
       if (e.message === 'Пользователь с таким "Логин" уже существует') {
         fieldError.value = e.message;
       } else {
@@ -43,13 +41,12 @@ export const useAuthStore = defineStore("auth", () => {
       fieldError.value = "";
 
       const data = await authService.authorization(user);
-      token.value = data.token_info.token
-      localStorage.setItem("token", data.token_info.token)
+      token.value = data.token_info.token;
+      localStorage.setItem("token", data.token_info.token);
 
-      router.push({name: 'profile'})
+      router.push({ name: "profile" });
     } catch (e) {
-      
-      if (e.message === 'Неправильный логин или пароль') {
+      if (e.message === "Неправильный логин или пароль") {
         fieldError.value = e.message;
       } else {
         serverError.value = "Не удалось войти в аккаунт";
@@ -62,38 +59,56 @@ export const useAuthStore = defineStore("auth", () => {
 
   async function logout() {
     try {
-      loading.value = true
-      serverError.value = ""
+      loading.value = true;
+      serverError.value = "";
 
-      await authService.logout()
+      await authService.logout();
 
-      token.value = null
-      localStorage.removeItem('token')
+      token.value = null;
+      localStorage.removeItem("token");
 
-      router.push({name: 'login'})
-    } catch(e) {
-      serverError.value = e.message
+      router.push({ name: "login" });
+    } catch (e) {
+      serverError.value = e.message;
     } finally {
-      loading.value = false
+      loading.value = false;
     }
   }
 
   async function refresh() {
     try {
-      const data = await authService.refresh()
+      const data = await authService.refresh();
 
-      const newToken = data.token_info.token
-      token.value = newToken
-      localStorage.setItem('token')
+      const newToken = data.token_info.token;
+      token.value = newToken;
+      localStorage.setItem("token");
 
-      return newToken
-    } catch(e) {
-      token.value = null
-      localStorage.removeItem('token')
+      return newToken;
+    } catch (e) {
+      token.value = null;
+      localStorage.removeItem("token");
 
-      router.push({name: 'login'})
+      router.push({ name: "login" });
     }
   }
 
-  return { token, isLoggedIn, registration, authorization, logout, refresh, loading, serverError, fieldError }
+  async function deleteAccount() {
+    token.value = null;
+    localStorage.removeItem("token");
+
+    router.push({ name: "login" });
+  }
+
+  return {
+    token,
+    isLoggedIn,
+    registration,
+    authorization,
+    logout,
+    refresh,
+    deleteAccount,
+    loading,
+    serverError,
+    fieldError,
+  };
 });

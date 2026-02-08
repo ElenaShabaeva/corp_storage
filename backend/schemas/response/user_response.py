@@ -18,3 +18,8 @@ class UserInfoResponseSchema(BaseModel):
 class LogoutResponseSchema(BaseModel):
     status: str
     message: str
+
+
+class UserDeleteResponseSchema(BaseModel):
+    status: str
+    rowcount: int

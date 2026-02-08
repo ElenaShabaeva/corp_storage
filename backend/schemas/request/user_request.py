@@ -1,4 +1,5 @@
 from pydantic import BaseModel, Field, field_validator
+from typing import Optional
 import re
 
 
@@ -22,3 +23,8 @@ class RegistrationRequestSchema(BaseModel):
 class LoginRequestSchema(BaseModel):
     login: str = Field(min_length=4, max_length=16)
     password: str = Field(min_length=8, max_length=16)
+
+
+class UserPatchRequestSchema(BaseModel):
+    name: Optional[str] = Field(default=None, min_length=1, max_length=150)
+    surname: Optional[str] = Field(default=None, min_length=1, max_length=150)
