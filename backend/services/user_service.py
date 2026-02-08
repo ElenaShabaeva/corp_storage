@@ -14,7 +14,6 @@ from configuration import settings
 from schemas.internal.token_schema import TokenInfoSchema
 from jwt import ExpiredSignatureError
 from schemas.response.user_response import UserInfoResponseSchema
-import logging
 from schemas.request.user_request import (
     RegistrationRequestSchema,
     LoginRequestSchema,
@@ -25,6 +24,7 @@ from schemas.response.user_response import (
     LogoutResponseSchema,
     UserDeleteResponseSchema
 )
+from jwt import DecodeError
 
 
 class UserService:
@@ -242,16 +242,34 @@ class UserService:
                 detail="Токен истек"
             )
 
-    async def delete_profile(self, encoded_jwt: str | None, response: Response) -> UserDeleteResponseSchema:
+    async def delete_profile(
+            self,
+            encoded_jwt: str | None,
+            response: Response,
+            refresh_token: str | None
+    ) -> UserDeleteResponseSchema:
         if not encoded_jwt:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Токен не найден"
             )
+        if not refresh_token:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Refresh token не найден"
+            )
         try:
+            _, jti = decode_jwt(token=refresh_token)
+            refresh_token = await self.refresh_token_repository.get_by_jti(jti=jti)
+            await self.refresh_token_repository.set_revoked_at(refresh_token=refresh_token)
             user_id, _ = decode_jwt(token=encoded_jwt)
             rowcount = await self.user_repository.delete(user_id=user_id)
-            response.delete_cookie("refresh_token")
+            response.delete_cookie(
+                key="refresh_token",
+                httponly=True,
+                secure=True,
+                samesite="none",
+            )
             return UserDeleteResponseSchema(
                 status="success",
                 rowcount=rowcount
@@ -260,4 +278,9 @@ class UserService:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Токен истек"
+            )
+        except DecodeError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Неправильный формат токена"
             )

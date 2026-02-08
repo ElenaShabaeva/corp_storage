@@ -84,7 +84,12 @@ async def update_profile(
 @router.delete("/delete", response_model=UserDeleteResponseSchema)
 async def delete_profile(
         response: Response,
+        refresh_token: str | None = Cookie(default=None, alias="refresh_token"),
         credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
         user_service: UserService = Depends(get_user_service)
 ):
-    return await user_service.delete_profile(encoded_jwt=credentials.credentials, response=response)
+    return await user_service.delete_profile(
+        encoded_jwt=credentials.credentials,
+        response=response,
+        refresh_token=refresh_token
+    )
