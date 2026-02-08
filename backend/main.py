@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from controllers.routers import router
 import logging
 import sys
+import os
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -13,7 +14,9 @@ logging.basicConfig(
 
 app = FastAPI()
 app.include_router(router)
-origins = ["*"]
+origins = [
+    os.getenv("FRONTEND_URL")
+]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
