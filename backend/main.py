@@ -24,3 +24,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(
+        "main:app",
+        host="26.122.80.20",
+        port=8000,
+        ssl_certfile="cert.crt",
+        ssl_keyfile="cert.key",
+        ssl_keyfile_password=os.getenv("SSL_KEYFILE_PASSWORD")
+    )
