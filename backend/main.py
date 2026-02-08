@@ -32,7 +32,7 @@ if __name__ == "__main__":
         "main:app",
         host="26.122.80.20",
         port=8000,
-        ssl_certfile="cert.crt",
-        ssl_keyfile="cert.key",
+        ssl_certfile=os.getenv("CERT_FILE"),
+        ssl_keyfile=os.getenv("KEY_FILE"),
         ssl_keyfile_password=os.getenv("SSL_KEYFILE_PASSWORD")
     )
