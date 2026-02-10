@@ -18,7 +18,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["update:modelValue", "blur"]);
-const updateInput = (event) => {
+const updateTextarea = (event) => {
   emit("update:modelValue", event.target.value);
 };
 </script>
