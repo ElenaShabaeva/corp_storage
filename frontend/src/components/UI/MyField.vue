@@ -68,34 +68,3 @@ const fieldValue = computed({
   set: (value) => emit("update:modelValue", value),
 });
 </script>
-
-<style lang="less">
-.field {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  row-gap: 4px;
-  width: 100%;
-
-  &--disabled {
-    pointer-events: none;
-  }
-
-  &__label,
-  &__message {
-    font-size: 14px;
-    line-height: 1.42;
-  }
-
-  &__message {
-    position: absolute;
-    left: 0;
-    bottom: -16px;
-    font-size: 12px;
-
-    &--error{
-      color: @error;
-    }
-  }
-}
-</style>
