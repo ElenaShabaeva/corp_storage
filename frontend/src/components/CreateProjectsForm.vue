@@ -16,6 +16,7 @@
             :label="'Описание (необязятельно)'"
             :type="'text'"
             :placeholder="'Проект по разработке'"
+            :required="false"
             v-model="project.description"
           />
         </div>
@@ -42,6 +43,15 @@ const project = reactive({
   name: "",
   description: "",
 });
+
+async function handleCreate() {
+  try{
+    await store.createProject({
+      name: project.name,
+      description: project.description
+    })
+  } catch(e){}
+}
 
 async function closeCreateModal() {
   store.closeCreateModal();
