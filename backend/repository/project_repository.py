@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from models.project import Project
+from models.user import User
 from models.user_project_association import UserProjectAssociation
 from uuid import UUID
 
@@ -21,3 +22,20 @@ class ProjectRepository:
 
         projects = result.scalars().all()
         return projects
+
+    async def post(
+            self,
+            name: str,
+            creator_id: UUID,
+            description: str | None = None,
+    ) -> Project:
+        project = Project(
+            name=name,
+            description=description,
+            members_count=1,
+            creator_id=creator_id
+        )
+        self.db.add(project)
+        await self.db.commit()
+        await self.db.refresh(project)
+        return project

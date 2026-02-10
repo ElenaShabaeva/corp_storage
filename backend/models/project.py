@@ -14,7 +14,7 @@ class Project(Base):
     __tablename__ = "project"
     id = Column(UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
     name = Column(String(length=65))
-    description = Column(String(length=200))
+    description = Column(String(length=200), nullable=True)
     members_count = Column(Integer)
     creator_id = Column(UUID(as_uuid=True), ForeignKey("user.id"))
 
