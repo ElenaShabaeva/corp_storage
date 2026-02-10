@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from uow.project_uow import ProjectUnitOfWork
+from repository.user_repository import UserRepository
 from fastapi import HTTPException, status
 from utils.jwt_utils import decode_jwt
 from jwt import ExpiredSignatureError, DecodeError
@@ -15,6 +16,7 @@ from schemas.response.project_response import (
 class ProjectService:
     def __init__(self, db: AsyncSession):
         self.project_uow: ProjectUnitOfWork = ProjectUnitOfWork(db=db)
+        self.user_repository: UserRepository = UserRepository(db=db)
 
     async def get_all(self, access_token: str | None) -> GetAllProjectsResponseSchema:
         if not access_token:
