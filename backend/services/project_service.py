@@ -1,7 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from repository.project_repository import ProjectRepository
-from repository.user_project_association_repository import UserProjectAssociationRepository
-from repository.user_repository import UserRepository
+from uow.project_uow import ProjectUnitOfWork
 from fastapi import HTTPException, status
 from utils.jwt_utils import decode_jwt
 from jwt import ExpiredSignatureError, DecodeError
@@ -16,9 +14,7 @@ from schemas.response.project_response import (
 
 class ProjectService:
     def __init__(self, db: AsyncSession):
-        self.project_repository: ProjectRepository = ProjectRepository(db=db)
-        self.user_project_association_repository: UserProjectAssociationRepository = UserProjectAssociationRepository(db=db)
-        self.user_repository: UserRepository = UserRepository(db=db)
+        self.project_uow: ProjectUnitOfWork = ProjectUnitOfWork(db=db)
 
     async def get_all(self, access_token: str | None) -> GetAllProjectsResponseSchema:
         if not access_token:
@@ -28,7 +24,7 @@ class ProjectService:
             )
         try:
             user_id, _ = decode_jwt(token=access_token)
-            projects = await self.project_repository.get_all(user_id=user_id)
+            projects = await self.project_uow.get_all(user_id=user_id)
             projects_response = [ProjectShortInfoResponseSchema(
                 id=project.id,
                 name=project.name,
@@ -62,13 +58,11 @@ class ProjectService:
             )
         try:
             user_id, _ = decode_jwt(token=access_token)
-            # Исправить создание проекта в две транзакции (нужна одна)
-            new_project = await self.project_repository.post(
+            new_project = await self.project_uow.create_project(
                 name=payload.name,
                 description=payload.description,
                 creator_id=user_id
             )
-            await self.user_project_association_repository.add_member(user_id=user_id, project_id=new_project.id)
             user = await self.user_repository.get_by_id(user_id=user_id)
             return ProjectShortInfoResponseSchema(
                 id=new_project.id,

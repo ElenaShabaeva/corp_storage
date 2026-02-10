@@ -1,8 +1,4 @@
-from typing import Sequence
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from sqlalchemy.orm import selectinload
-from models.project import Project
 from models.user_project_association import UserProjectAssociation
 from uuid import UUID
 
@@ -17,4 +13,3 @@ class UserProjectAssociationRepository:
             project_id=project_id
         )
         self.db.add(association)
-        await self.db.commit()

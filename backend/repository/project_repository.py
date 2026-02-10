@@ -32,10 +32,9 @@ class ProjectRepository:
         project = Project(
             name=name,
             description=description,
-            members_count=1,
+            members_count=0,
             creator_id=creator_id
         )
         self.db.add(project)
-        await self.db.commit()
-        await self.db.refresh(project)
+        await self.db.flush()
         return project
