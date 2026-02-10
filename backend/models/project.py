@@ -16,7 +16,7 @@ class Project(Base):
     name = Column(String(length=65))
     description = Column(String(length=200), nullable=True)
     members_count = Column(Integer)
-    creator_id = Column(UUID(as_uuid=True), ForeignKey("user.id"))
+    creator_id = Column(UUID(as_uuid=True), ForeignKey("user.id", ondelete="CASCADE"))
 
     creator = relationship("User", back_populates="created_projects")
     user_association = relationship("UserProjectAssociation", back_populates="project")
