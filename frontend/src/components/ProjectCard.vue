@@ -1,17 +1,23 @@
 <template>
   <li class="project-card">
-    <p class="project-card__name">Проект 1</p>
+    <p class="project-card__name">{{ project.name }}</p>
     <div class="project-card__body">
       <div class="project-card__info">
-        <span>Создан: nickname</span>
-        <span>Участников: 0</span>
+        <span>Создан: {{ project.creator_login }}</span>
+        <span>Участников: {{ project.members_count }}</span>
       </div>
       <my-text-button>Покинуть проект</my-text-button>
     </div>
   </li>
 </template>
 
-<script setup></script>
+<script setup>
+const props = defineProps({
+  project: {
+    type: Object,
+  }
+})
+</script>
 
 <style lang="less">
 .project-card {
