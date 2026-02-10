@@ -18,5 +18,5 @@ class Project(Base):
     members_count = Column(Integer)
     creator_id = Column(UUID(as_uuid=True), ForeignKey("user.id"))
 
-    creator = relationship("User", back_populates="created_projects", cascade="all, delete-orphan")
+    creator = relationship("User", back_populates="created_projects")
     user_association = relationship("UserProjectAssociation", back_populates="project")
