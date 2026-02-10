@@ -30,7 +30,7 @@ if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
         "main:app",
-        host="26.122.80.20",
+        host=os.getenv("BACKEND_IP"),
         port=8000,
         ssl_certfile=os.getenv("CERT_FILE"),
         ssl_keyfile=os.getenv("KEY_FILE"),
