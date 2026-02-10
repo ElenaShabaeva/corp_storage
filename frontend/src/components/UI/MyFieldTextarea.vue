@@ -1,35 +1,26 @@
 <template>
-  <div class="field" :class="{ 'field--disabled': disabled }">
+  <div class="field">
     <label :for="label" class="field__label">{{ label }}*</label>
-    <my-input
-      :class="{
-        'input--error': message,
-        'input--disabled': disabled,
-      }"
+    <my-textarea
+      :class="{ 'textarea--error': errorMessage }"
       :id="label"
       :placeholder="placeholder"
       :type="type"
       :required="requared"
       v-model="fieldValue"
       v-bind="$attrs"
-      :disabled="disabled"
       autocomplete="off"
       @blur="$emit('blur', $event)"
     />
-    <span
-      v-if="message"
-      :class="['field__message', `field__message--error`]"
-    >
-      {{ message }}
-    </span>
+    <span class="field__error" v-if="errorMessage">{{ errorMessage }}</span>
   </div>
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed } from 'vue';
 
 defineOptions({
-  name: "my-field",
+  name: "my-field-textarea",
   inheritAttrs: false,
 });
 

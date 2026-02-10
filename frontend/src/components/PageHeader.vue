@@ -8,7 +8,7 @@
       <nav class="header__nav" v-if="isLoggedIn">
         <div class="header__nav-block">
           <ul class="header__links">
-            <li class="header__link">Проекты</li>
+            <router-link class="link" to="/projects">Проекты</router-link>
             <router-link class="link" to="/profile">Профиль</router-link>
           </ul>
         </div>
