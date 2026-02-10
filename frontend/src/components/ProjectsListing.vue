@@ -1,8 +1,8 @@
 <template>
   <div class="projects-listing">
     <h1 class="title">Проекты</h1>
-    <p class="projects-listing__none" v-if="!store.projects">У вас сейчас нет проектов</p>
-    <ul class="projects-listing__list" v-else="store.projects">
+    <p class="projects-listing__none" v-if="!store.projects.length">У вас сейчас нет проектов</p>
+    <ul class="projects-listing__list" v-else="store.projects.length">
       <ProjectCard v-for="project in store.projects" :key="project.id" :project="project"/>
     </ul>
   </div>
