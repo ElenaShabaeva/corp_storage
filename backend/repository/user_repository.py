@@ -26,7 +26,7 @@ class UserRepository:
             password=password
         )
         self.db.add(user)
-        await self.db.commit()
+        await self.db.flush()
         await self.db.refresh(user)
         return user
 
@@ -36,7 +36,7 @@ class UserRepository:
 
     async def patch(self, updated_user: User) -> User:
         self.db.add(updated_user)
-        await self.db.commit()
+        await self.db.flush()
         await self.db.refresh(updated_user)
         return updated_user
 
@@ -45,5 +45,4 @@ class UserRepository:
             delete(User)
             .where(User.id == user_id)
         )
-        await self.db.commit()
         return result.rowcount
