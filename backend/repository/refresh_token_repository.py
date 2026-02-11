@@ -23,7 +23,7 @@ class RefreshTokenRepository:
             expires_at=expires_at
         )
         self.db.add(refresh_token)
-        await self.db.commit()
+        await self.db.flush()
         await self.db.refresh(refresh_token)
         return refresh_token
 
@@ -41,4 +41,3 @@ class RefreshTokenRepository:
     async def set_revoked_at(self, refresh_token: RefreshToken):
         refresh_token.revoked_at = datetime.now(timezone.utc)
         self.db.add(refresh_token)
-        await self.db.commit()

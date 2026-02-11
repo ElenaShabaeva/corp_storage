@@ -1,9 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from uow.project_uow import ProjectUnitOfWork
-from repository.user_repository import UserRepository
 from fastapi import HTTPException, status
 from utils.jwt_utils import decode_jwt
 from jwt import ExpiredSignatureError, DecodeError
+from utils.uow import UnitOfWork
 from schemas.request.project_request import (
     ProjectCreateRequestSchema
 )
@@ -14,9 +13,8 @@ from schemas.response.project_response import (
 
 
 class ProjectService:
-    def __init__(self, db: AsyncSession):
-        self.project_uow: ProjectUnitOfWork = ProjectUnitOfWork(db=db)
-        self.user_repository: UserRepository = UserRepository(db=db)
+    def __init__(self):
+        self.uow = UnitOfWork()
 
     async def get_all(self, access_token: str | None) -> GetAllProjectsResponseSchema:
         if not access_token:
@@ -26,7 +24,8 @@ class ProjectService:
             )
         try:
             user_id, _ = decode_jwt(token=access_token)
-            projects = await self.project_uow.get_all(user_id=user_id)
+            async with self.uow.start():
+                projects = await self.uow.projects.get_all(user_id=user_id)
             projects_response = [ProjectShortInfoResponseSchema(
                 id=project.id,
                 name=project.name,
@@ -60,12 +59,18 @@ class ProjectService:
             )
         try:
             user_id, _ = decode_jwt(token=access_token)
-            new_project = await self.project_uow.create_project(
-                name=payload.name,
-                description=payload.description,
-                creator_id=user_id
-            )
-            user = await self.user_repository.get_by_id(user_id=user_id)
+            async with self.uow.start():
+                new_project = await self.uow.projects.post(
+                    name=payload.name,
+                    description=payload.description,
+                    creator_id=user_id
+                )
+                await self.uow.user_project_association.add_member(
+                    user_id=user_id,
+                    project_id=new_project.id
+                )
+                new_project.members_count += 1
+                user = await self.uow.users.get_by_id(user_id=user_id)
             return ProjectShortInfoResponseSchema(
                 id=new_project.id,
                 name=new_project.name,
