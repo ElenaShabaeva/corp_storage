@@ -4,7 +4,8 @@ from configuration import settings
 from services.project_service import ProjectService
 from uuid import UUID
 from schemas.request.project_request import (
-    ProjectCreateRequestSchema
+    ProjectCreateRequestSchema,
+    InviteUserRequestSchema
 )
 from schemas.response.project_response import (
     GetAllProjectsResponseSchema,
@@ -53,3 +54,12 @@ async def get_members(
         project_service: ProjectService = Depends(ProjectService)
 ):
     return await project_service.get_members(project_id=project_id, access_token=credentials.credentials)
+
+
+@router.post("/invite")
+async def invite_user(
+        payload: InviteUserRequestSchema,
+        credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
+        project_service: ProjectService = Depends(ProjectService)
+):
+    return await project_service.invite_user(payload=payload, access_token=credentials.credentials)
