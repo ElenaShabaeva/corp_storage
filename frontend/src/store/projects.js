@@ -6,6 +6,7 @@ export const useProjectsStore = defineStore("projects", () => {
   const projects = ref(null);
   const projectInfo = ref(null);
   const projectMembers = ref(null);
+  const projectOwner = ref(false)
 
   const showCreateModal = ref(false);
   const initialLoading = ref(false);
@@ -78,6 +79,7 @@ export const useProjectsStore = defineStore("projects", () => {
       const data = await api.request(`/project?project_id=${id}`);
       
       projectInfo.value = data;
+      projectOwner.value = data.isOwner
     } catch (e) {
       serverError.value = 'Не удалось загрузить данные проекта'
       setTimeout(() => (serverError.value = ""), 4000);
@@ -112,6 +114,7 @@ export const useProjectsStore = defineStore("projects", () => {
   return {
     projects,
     projectInfo,
+    projectOwner,
     projectMembers,
     showCreateModal,
     initialLoading,
