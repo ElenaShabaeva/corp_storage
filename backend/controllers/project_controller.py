@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 from fastapi.security import HTTPAuthorizationCredentials
 from configuration import settings
 from services.project_service import ProjectService
+from uuid import UUID
 from schemas.request.project_request import (
     ProjectCreateRequestSchema
 )
@@ -37,7 +38,8 @@ async def create(
 
 @router.get("/{id}")
 async def get_by_id(
+        project_id: UUID,
         credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
         project_service: ProjectService = Depends(ProjectService)
 ):
-    pass
+    return await project_service.get_by_id(project_id=project_id, access_token=credentials.credentials)
