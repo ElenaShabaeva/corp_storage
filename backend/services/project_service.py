@@ -13,7 +13,8 @@ from schemas.internal.user_schema import (
 from schemas.response.project_response import (
     ProjectShortInfoResponseSchema,
     GetAllProjectsResponseSchema,
-    ProjectFullInfoResponseSchema
+    ProjectMainPageInfoResponseSchema,
+    ProjectMembersResponseSchema
 )
 
 
@@ -108,21 +109,43 @@ class ProjectService:
                         status_code=status.HTTP_404_NOT_FOUND,
                         detail="Проект не найден"
                     )
-                members = await self.uow.projects.get_members(project_id=project_id)
-                user = await self.uow.users.get_by_id(user_id=user_id)
 
-                return ProjectFullInfoResponseSchema(
+                return ProjectMainPageInfoResponseSchema(
                     id=project.id,
                     name=project.name,
-                    creator_login=user.login,
-                    members_count=project.members_count,
-                    isOwner=True if project.creator_id == user_id else False,
                     description=project.description,
-                    members=[UserShortInfoSchema(
-                            id=member.id,
-                            login=member.login
-                        ) for member in members]
+                    isOwner=True if project.creator_id == user_id else False
                 )
+        except ExpiredSignatureError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Access token истек"
+            )
+        except DecodeError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Неверный формат токена"
+            )
+
+    async def get_members(self, project_id: UUID, access_token: str | None):
+        if not access_token:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Access token не найден"
+            )
+        try:
+            user_id, _ = decode_jwt(token=access_token)
+            async with self.uow.start():
+                project = await self.uow.projects.get_by_id(project_id=project_id)
+                members = await self.uow.projects.get_members(project_id=project_id)
+
+            return ProjectMembersResponseSchema(
+                members_count=project.members_count,
+                members=[UserShortInfoSchema(
+                    id=member.id,
+                    login=member.login
+                ) for member in members]
+            )
         except ExpiredSignatureError:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
