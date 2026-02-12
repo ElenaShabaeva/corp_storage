@@ -28,6 +28,23 @@ const router = createRouter({
       component: () => import("@/pages/ProjectsPage.vue"),
       meta: { requiresAuth: true },
     },
+    {
+      path: "/project/:id",
+      name: "project",
+      component: () => import("@/pages/project/ProjectPage.vue"),
+      meta: { requiresAuth: true },
+      children: [
+        {
+          path: "",
+          redirect: { name: "members" },
+        },
+        {
+          path: "members",
+          name: "members",
+          component: () => import("@/pages/project/MembersPage.vue"),
+        },
+      ],
+    },
   ],
 });
 
@@ -43,7 +60,7 @@ router.beforeEach((to, from, next) => {
   }
 
   if (store.token && (to.name === "login" || to.name === "registration")) {
-    next({ name: "project" });
+    next({ name: "projects" });
     return;
   }
 
