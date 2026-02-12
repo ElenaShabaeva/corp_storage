@@ -11,9 +11,15 @@ class ProjectShortInfoResponseSchema(BaseModel):
     members_count: int
 
 
-class ProjectFullInfoResponseSchema(ProjectShortInfoResponseSchema):
+class ProjectMainPageInfoResponseSchema(BaseModel):
+    id: UUID
+    name: str
+    description: str
     isOwner: bool
-    description: Optional[str] = None
+
+
+class ProjectMembersResponseSchema(BaseModel):
+    members_count: int
     members: list[UserShortInfoSchema]
 
 
