@@ -39,7 +39,6 @@ async def create(
     return await project_service.create(payload=payload, access_token=credentials.credentials)
 
 
-# при просмотре информации о проекте нужно ее давать только тем, кто состоит в проекте
 @router.get("", response_model=ProjectMainPageInfoResponseSchema)
 async def get_by_id(
         project_id: UUID,
