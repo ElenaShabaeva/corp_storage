@@ -1,6 +1,6 @@
 from typing import Sequence
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.orm import selectinload
 from models.project import Project
 from models.user import User
@@ -56,3 +56,10 @@ class ProjectRepository:
 
         members = result.scalars().all()
         return members
+
+    async def delete(self, project_id: UUID) -> int:
+        result = await self.db.execute(
+            delete(Project)
+            .where(Project.id == project_id)
+        )
+        return result.rowcount

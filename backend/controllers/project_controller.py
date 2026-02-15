@@ -7,6 +7,7 @@ from schemas.request.project_request import (
     ProjectCreateRequestSchema,
     InviteUserRequestSchema
 )
+from schemas.response.standart_message import MessageResponseSchema
 from schemas.response.project_response import (
     GetAllProjectsResponseSchema,
     ProjectShortInfoResponseSchema,
@@ -38,7 +39,8 @@ async def create(
     return await project_service.create(payload=payload, access_token=credentials.credentials)
 
 
-@router.get("/{id}", response_model=ProjectMainPageInfoResponseSchema)
+# при просмотре информации о проекте нужно ее давать только тем, кто состоит в проекте
+@router.get("", response_model=ProjectMainPageInfoResponseSchema)
 async def get_by_id(
         project_id: UUID,
         credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
@@ -47,7 +49,7 @@ async def get_by_id(
     return await project_service.get_by_id(project_id=project_id, access_token=credentials.credentials)
 
 
-@router.get("/members/{id}", response_model=ProjectMembersResponseSchema)
+@router.get("/members", response_model=ProjectMembersResponseSchema)
 async def get_members(
         project_id: UUID,
         credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
@@ -56,10 +58,19 @@ async def get_members(
     return await project_service.get_members(project_id=project_id, access_token=credentials.credentials)
 
 
-@router.post("/invite")
+@router.post("/invite", response_model=MessageResponseSchema)
 async def invite_user(
         payload: InviteUserRequestSchema,
         credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
         project_service: ProjectService = Depends(ProjectService)
 ):
     return await project_service.invite_user(payload=payload, access_token=credentials.credentials)
+
+
+@router.get("/leave", response_model=MessageResponseSchema)
+async def leave(
+        project_id: UUID,
+        credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
+        project_service: ProjectService = Depends(ProjectService)
+):
+    return await project_service.leave(project_id=project_id, access_token=credentials.credentials)
