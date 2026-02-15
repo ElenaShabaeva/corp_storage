@@ -38,7 +38,7 @@ async def create(
     return await project_service.create(payload=payload, access_token=credentials.credentials)
 
 
-@router.get("/{id}", response_model=ProjectMainPageInfoResponseSchema)
+@router.get("", response_model=ProjectMainPageInfoResponseSchema)
 async def get_by_id(
         project_id: UUID,
         credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
@@ -47,7 +47,7 @@ async def get_by_id(
     return await project_service.get_by_id(project_id=project_id, access_token=credentials.credentials)
 
 
-@router.get("/members/{id}", response_model=ProjectMembersResponseSchema)
+@router.get("/members", response_model=ProjectMembersResponseSchema)
 async def get_members(
         project_id: UUID,
         credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),

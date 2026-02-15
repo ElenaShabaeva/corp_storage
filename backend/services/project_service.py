@@ -111,6 +111,12 @@ class ProjectService:
                         status_code=status.HTTP_404_NOT_FOUND,
                         detail="Проект не найден"
                     )
+                members = await self.uow.projects.get_members(project_id=project_id)
+                if user_id not in [user.id for user in members]:
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        detail="Нет прав"
+                    )
 
             return ProjectMainPageInfoResponseSchema(
                 id=project.id,
@@ -140,6 +146,11 @@ class ProjectService:
             async with self.uow.start():
                 project = await self.uow.projects.get_by_id(project_id=project_id)
                 members = await self.uow.projects.get_members(project_id=project_id)
+                if user_id not in [user.id for user in members]:
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        detail="Нет прав"
+                    )
 
             return ProjectMembersResponseSchema(
                 members_count=project.members_count,
