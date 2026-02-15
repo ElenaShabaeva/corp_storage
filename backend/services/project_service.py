@@ -96,7 +96,7 @@ class ProjectService:
                 detail="Неверный формат токена"
             )
 
-    async def get_by_id(self, project_id: UUID, access_token: str | None):
+    async def get_by_id(self, project_id: UUID, access_token: str | None) -> ProjectMainPageInfoResponseSchema:
         if not access_token:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -129,7 +129,7 @@ class ProjectService:
                 detail="Неверный формат токена"
             )
 
-    async def get_members(self, project_id: UUID, access_token: str | None):
+    async def get_members(self, project_id: UUID, access_token: str | None) -> ProjectMembersResponseSchema:
         if not access_token:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -159,7 +159,7 @@ class ProjectService:
                 detail="Неверный формат токена"
             )
 
-    async def invite_user(self, payload: InviteUserRequestSchema, access_token: str | None):
+    async def invite_user(self, payload: InviteUserRequestSchema, access_token: str | None) -> MessageResponseSchema:
         if not access_token:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -194,6 +194,37 @@ class ProjectService:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Access token истек"
+            )
+        except DecodeError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Неверный формат токена"
+            )
+
+    async def leave(self, project_id: UUID, access_token: str | None) -> MessageResponseSchema:
+        if not access_token:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Access токен не найден"
+            )
+        try:
+            user_id, _ = decode_jwt(token=access_token)
+            async with self.uow.start():
+                project = await self.uow.projects.get_by_id(project_id=project_id)
+                if project.creator_id != user_id:
+                    await self.uow.user_project_association.delete(user_id=user_id, project_id=project_id)
+                    project.members_count -= 1
+                else:
+                    await self.uow.projects.delete(project_id=project_id)
+
+            return MessageResponseSchema(
+                status="success",
+                message="Выход прошел успешно"
+            )
+        except ExpiredSignatureError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Access токен истек"
             )
         except DecodeError:
             raise HTTPException(
