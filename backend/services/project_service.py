@@ -6,7 +6,7 @@ from utils.uow import UnitOfWork
 from uuid import UUID
 from schemas.request.project_request import (
     ProjectCreateRequestSchema,
-    InviteUserRequestSchema
+    InviteKickUserRequestSchema
 )
 from schemas.internal.user_schema import (
     UserShortInfoSchema
@@ -170,7 +170,7 @@ class ProjectService:
                 detail="Неверный формат токена"
             )
 
-    async def invite_user(self, payload: InviteUserRequestSchema, access_token: str | None) -> MessageResponseSchema:
+    async def invite_user(self, payload: InviteKickUserRequestSchema, access_token: str | None) -> MessageResponseSchema:
         if not access_token:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -231,6 +231,59 @@ class ProjectService:
             return MessageResponseSchema(
                 status="success",
                 message="Выход прошел успешно"
+            )
+        except ExpiredSignatureError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Access токен истек"
+            )
+        except DecodeError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Неверный формат токена"
+            )
+
+    async def kick_member(
+            self,
+            access_token: str | None,
+            payload: InviteKickUserRequestSchema
+    ) -> MessageResponseSchema:
+        if not access_token:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Access токен не найден"
+            )
+        try:
+            user_id, _ = decode_jwt(token=access_token)
+            async with self.uow.start():
+                project = await self.uow.projects.get_by_id(project_id=payload.project_id)
+                if not project:
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail="Проект не найден"
+                    )
+                if user_id != project.creator_id:
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        detail="Нет прав"
+                    )
+                user = await self.uow.users.get_by_login(login=payload.login)
+                if user.id == user_id:
+                    raise HTTPException(
+                        status_code=status.HTTP_409_CONFLICT,
+                        detail="Нельзя выгнать создателя"
+                    )
+                members = await self.uow.projects.get_members(project_id=project.id)
+                if user not in members:
+                    raise HTTPException(
+                        status_code=status.HTTP_409_CONFLICT,
+                        detail="Пользователя уже нет в проекте"
+                    )
+                await self.uow.user_project_association.delete(user_id=user.id, project_id=project.id)
+                project.members_count -= 1
+            return MessageResponseSchema(
+                status="success",
+                message="Пользователь успешно выгнан из проекта"
             )
         except ExpiredSignatureError:
             raise HTTPException(
