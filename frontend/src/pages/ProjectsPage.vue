@@ -6,10 +6,19 @@
     </div>
   </div>
   <CreateProjectsForm v-if="store.showCreateModal"/>
+  <LeaveProject v-if="store.showLeaveModal"/>
+
   <Loading :title="'Идет создание проекта'" v-if="store.createLoading" />
+  <Loading :title="'Идет выход из проекта'" v-if="store.leaveLoading" />
+
   <Transition name="modal" appear v-if="store.serverError">
     <div class="modal" :class="{ 'modal--error': store.serverError }">
       {{ store.serverError }}
+    </div>
+  </Transition>
+  <Transition name="modal" appear v-if="store.success">
+    <div class="modal" :class="{ 'modal--success': store.success }">
+      {{ store.success }}
     </div>
   </Transition>
 </template>
@@ -20,6 +29,7 @@ import CreateProjectsForm from '../components/CreateProjectsForm.vue';
 import ProjectsListing from '../components/ProjectsListing.vue';
 import { useProjectsStore } from '../store/projects';
 import Loading from '../components/Loading.vue';
+import LeaveProject from '../components/LeaveProject.vue';
 
 const store = useProjectsStore()
 
