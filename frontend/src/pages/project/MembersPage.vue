@@ -5,7 +5,7 @@
         >Участников в проекте:
         {{ store.projectMembers?.members_count || 0 }}</span
       >
-      <my-button type="button" :filled="true" v-if="store.projectOwner"
+      <my-button type="button" :filled="true" v-if="store.projectOwner" @click="showModal"
         >Добавить участника</my-button
       >
     </div>
@@ -24,6 +24,10 @@ import MembersItem from "../../components/MembersItem.vue";
 import { useProjectsStore } from "../../store/projects";
 
 const store = useProjectsStore();
+
+async function showModal() {
+  store.openInviteModal()
+}
 </script>
 
 <style lang="less">
