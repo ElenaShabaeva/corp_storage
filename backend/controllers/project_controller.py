@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 from fastapi.security import HTTPAuthorizationCredentials
 from configuration import settings
+from dependencies import get_project_service
 from services.project_service import ProjectService
 from uuid import UUID
 from schemas.request.project_request import (
