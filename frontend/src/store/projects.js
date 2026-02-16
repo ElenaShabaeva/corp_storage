@@ -6,14 +6,17 @@ export const useProjectsStore = defineStore("projects", () => {
   const projects = ref(null);
   const projectInfo = ref(null);
   const projectMembers = ref(null);
-  const projectOwner = ref(false)
+  const projectOwner = ref(false);
 
   const showCreateModal = ref(false);
+  const showInviteModal = ref(false);
   const initialLoading = ref(false);
   const createLoading = ref(false);
   const infoLoading = ref(false);
   const membersLoading = ref(false);
+  const inviteLoading = ref(false);
   const serverError = ref("");
+  const success = ref("");
 
   const savedProjects = () => {
     try {
@@ -75,32 +78,63 @@ export const useProjectsStore = defineStore("projects", () => {
 
   async function getProjectInfo(id) {
     try {
-      infoLoading.value = true
+      infoLoading.value = true;
       const data = await api.request(`/project?project_id=${id}`);
-      
+      serverError.value = "";
+
       projectInfo.value = data;
-      projectOwner.value = data.isOwner
+      projectOwner.value = data.isOwner;
     } catch (e) {
-      serverError.value = 'Не удалось загрузить данные проекта'
+      serverError.value = "Не удалось загрузить данные проекта";
       setTimeout(() => (serverError.value = ""), 4000);
-      projectInfo.value = null
+      projectInfo.value = null;
     } finally {
-      infoLoading.value = false
+      infoLoading.value = false;
     }
   }
 
   async function getProjectMembers(id) {
     try {
-      membersLoading.value = true
+      membersLoading.value = true;
       const data = await api.request(`/project/members?project_id=${id}`);
-      
+      serverError.value = "";
+
       projectMembers.value = data;
     } catch (e) {
-      serverError.value = 'Не удалось загрузить участников'
+      serverError.value = "Не удалось загрузить участников";
       setTimeout(() => (serverError.value = ""), 4000);
-      projectMembers.value = null
+      projectMembers.value = null;
     } finally {
-      membersLoading.value = false
+      membersLoading.value = false;
+    }
+  }
+
+  async function inviteMember(id, nickname) {
+    try {
+      showInviteModal.value = false;
+      inviteLoading.value = true;
+      serverError.value = "";
+
+      const data = await api.request("/project/invite", {
+        method: "POST",
+        body: JSON.stringify({
+          login: nickname,
+          project_id: id,
+        }),
+      });
+
+      success.value = `Отправлено приглашение '${nickname}'`;
+
+      setTimeout(() => (success.value = ""), 4000);
+    } catch (e) {
+      if (e.message?.includes("409") || e.status === 409) {
+        serverError.value = `Участник '${nickname}' уже добавлен в проект`;
+      } else {
+        serverError.value = `Не удалось добавить '${nickname}': ${e.message}`;
+      }
+      setTimeout(() => (serverError.value = ""), 4000);
+    } finally {
+      inviteLoading.value = false;
     }
   }
 
@@ -111,22 +145,35 @@ export const useProjectsStore = defineStore("projects", () => {
     showCreateModal.value = false;
   }
 
+  function openInviteModal() {
+    showInviteModal.value = true;
+  }
+  function closeInviteModal() {
+    showInviteModal.value = false;
+  }
+
   return {
     projects,
     projectInfo,
     projectOwner,
     projectMembers,
     showCreateModal,
+    showInviteModal,
     initialLoading,
     createLoading,
     infoLoading,
     membersLoading,
+    inviteLoading,
     serverError,
+    success,
     getProjects,
     createProject,
     getProjectInfo,
     getProjectMembers,
+    inviteMember,
     openCreateModal,
     closeCreateModal,
+    openInviteModal,
+    closeInviteModal,
   };
 });
