@@ -6,13 +6,16 @@
         <span>Создан: {{ project.creator_login }}</span>
         <span>Участников: {{ project.members_count }}</span>
       </div>
-      <my-text-button>Покинуть проект</my-text-button>
+      <my-text-button @click.stop="handleLeave">Покинуть проект</my-text-button>
     </div>
   </li>
 </template>
 
 <script setup>
 import router from '../router';
+import { useProjectsStore } from '../store/projects';
+
+const store = useProjectsStore()
 
 const props = defineProps({
   project: {
@@ -23,6 +26,10 @@ const props = defineProps({
 const goToProject = () => {
   router.push(`/project/${props.project.id}/`)
 };
+
+async function handleLeave() {
+  store.openLeaveModal(props.project)
+}
 </script>
 
 <style lang="less">
