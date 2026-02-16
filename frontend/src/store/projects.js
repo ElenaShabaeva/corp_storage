@@ -10,13 +10,17 @@ export const useProjectsStore = defineStore("projects", () => {
 
   const showCreateModal = ref(false);
   const showInviteModal = ref(false);
+  const showLeaveModal = ref(false);
   const initialLoading = ref(false);
   const createLoading = ref(false);
   const infoLoading = ref(false);
   const membersLoading = ref(false);
   const inviteLoading = ref(false);
+  const leaveLoading = ref(false);
   const serverError = ref("");
   const success = ref("");
+
+  const currentProject = ref(null);
 
   const savedProjects = () => {
     try {
@@ -138,6 +142,41 @@ export const useProjectsStore = defineStore("projects", () => {
     }
   }
 
+  async function leaveProject() {
+    try {
+      showLeaveModal.value = false;
+      leaveLoading.value = true;
+      serverError.value = "";
+
+      const data = await api.request(
+        `/project/leave?project_id=${currentProject.value.id}`,
+      );
+
+      if (projects.value) {
+        const projectIndex = projects.value.findIndex(
+          (p) => p.id === currentProject.value.id,
+        );
+
+        if (projectIndex !== -1) {
+          projects.value.splice(projectIndex, 1);
+        }
+
+        localStorage.setItem("projects", JSON.stringify(projects.value));
+      } else {
+        localStorage.removeItem("projects");
+      }
+
+      success.value = `Вы покинули проект '${currentProject.value.name}'`;
+      setTimeout(() => (success.value = ""), 4000);
+    } catch (e) {
+      serverError.value = `Не удалось покинуть проект '${currentProject.value.name}'`;
+      setTimeout(() => (serverError.value = ""), 4000);
+    } finally {
+      leaveLoading.value = false;
+      currentProject.value = null
+    }
+  }
+
   function openCreateModal() {
     showCreateModal.value = true;
   }
@@ -152,6 +191,15 @@ export const useProjectsStore = defineStore("projects", () => {
     showInviteModal.value = false;
   }
 
+  function openLeaveModal(project) {
+    currentProject.value = project;
+    showLeaveModal.value = true;
+  }
+  function closeLeaveModal() {
+    currentProject.value = null;
+    showLeaveModal.value = false;
+  }
+
   return {
     projects,
     projectInfo,
@@ -159,11 +207,13 @@ export const useProjectsStore = defineStore("projects", () => {
     projectMembers,
     showCreateModal,
     showInviteModal,
+    showLeaveModal,
     initialLoading,
     createLoading,
     infoLoading,
     membersLoading,
     inviteLoading,
+    leaveLoading,
     serverError,
     success,
     getProjects,
@@ -171,9 +221,12 @@ export const useProjectsStore = defineStore("projects", () => {
     getProjectInfo,
     getProjectMembers,
     inviteMember,
+    leaveProject,
     openCreateModal,
     closeCreateModal,
     openInviteModal,
     closeInviteModal,
+    openLeaveModal,
+    closeLeaveModal,
   };
 });

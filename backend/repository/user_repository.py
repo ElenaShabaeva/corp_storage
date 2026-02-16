@@ -40,7 +40,7 @@ class UserRepository:
         await self.db.refresh(updated_user)
         return updated_user
 
-    async def delete(self, user_id: UUID):
+    async def delete(self, user_id: UUID) -> int:
         result = await self.db.execute(
             delete(User)
             .where(User.id == user_id)

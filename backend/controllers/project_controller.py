@@ -1,12 +1,14 @@
 from fastapi import APIRouter, Depends
 from fastapi.security import HTTPAuthorizationCredentials
 from configuration import settings
+from dependencies import get_project_service
 from services.project_service import ProjectService
 from uuid import UUID
 from schemas.request.project_request import (
     ProjectCreateRequestSchema,
     InviteUserRequestSchema
 )
+from schemas.response.standart_message import MessageResponseSchema
 from schemas.response.project_response import (
     GetAllProjectsResponseSchema,
     ProjectShortInfoResponseSchema,
@@ -56,10 +58,19 @@ async def get_members(
     return await project_service.get_members(project_id=project_id, access_token=credentials.credentials)
 
 
-@router.post("/invite")
+@router.post("/invite", response_model=MessageResponseSchema)
 async def invite_user(
         payload: InviteUserRequestSchema,
         credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
         project_service: ProjectService = Depends(ProjectService)
 ):
     return await project_service.invite_user(payload=payload, access_token=credentials.credentials)
+
+
+@router.get("/leave", response_model=MessageResponseSchema)
+async def leave(
+        project_id: UUID,
+        credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
+        project_service: ProjectService = Depends(ProjectService)
+):
+    return await project_service.leave(project_id=project_id, access_token=credentials.credentials)
