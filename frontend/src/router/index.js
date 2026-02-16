@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "../store/auth";
+import { useProfileStore } from "../store/profile";
+import { useProjectsStore } from "../store/projects";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -49,9 +51,18 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  const store = useAuthStore();
+  const authStore = useAuthStore();
+  const profileStore = useProfileStore()
+  const projectsStore = useProjectsStore()
 
-  if (to.meta.requiresAuth && !store.token) {
+  authStore.serverError = ''
+  profileStore.serverError = ''
+  projectsStore.serverError = ''
+
+  profileStore.success = ''
+  projectsStore.success = ''
+
+  if (to.meta.requiresAuth && !authStore.token) {
     next({
       name: "login",
       query: { redirect: to.fullPath },
@@ -59,7 +70,7 @@ router.beforeEach((to, from, next) => {
     return;
   }
 
-  if (store.token && (to.name === "login" || to.name === "registration")) {
+  if (authStore.token && (to.name === "login" || to.name === "registration")) {
     next({ name: "projects" });
     return;
   }
