@@ -1,5 +1,5 @@
 <template>
-  <li class="project-card">
+  <li class="project-card" @click="goToProject">
     <p class="project-card__name">{{ project.name }}</p>
     <div class="project-card__body">
       <div class="project-card__info">
@@ -12,11 +12,17 @@
 </template>
 
 <script setup>
+import router from '../router';
+
 const props = defineProps({
   project: {
     type: Object,
-  }
-})
+  },
+});
+
+const goToProject = () => {
+  router.push(`/project/${props.project.id}/`)
+};
 </script>
 
 <style lang="less">
