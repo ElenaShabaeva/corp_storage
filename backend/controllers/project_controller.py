@@ -1,15 +1,17 @@
 from fastapi import APIRouter, Depends
 from fastapi.security import HTTPAuthorizationCredentials
 from configuration import settings
-from dependencies import get_project_service
 from services.project_service import ProjectService
+from uuid import UUID
 from schemas.request.project_request import (
-    ProjectCreateRequestSchema
+    ProjectCreateRequestSchema,
+    InviteUserRequestSchema
 )
 from schemas.response.project_response import (
     GetAllProjectsResponseSchema,
     ProjectShortInfoResponseSchema,
-    ProjectFullInfoResponseSchema
+    ProjectMainPageInfoResponseSchema,
+    ProjectMembersResponseSchema
 )
 
 
@@ -22,7 +24,7 @@ router = APIRouter(
 @router.get("/all", response_model=GetAllProjectsResponseSchema)
 async def get_all(
         credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
-        project_service: ProjectService = Depends(get_project_service)
+        project_service: ProjectService = Depends(ProjectService)
 ):
     return await project_service.get_all(access_token=credentials.credentials)
 
@@ -31,6 +33,33 @@ async def get_all(
 async def create(
         payload: ProjectCreateRequestSchema,
         credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
-        project_service: ProjectService = Depends(get_project_service)
+        project_service: ProjectService = Depends(ProjectService)
 ):
     return await project_service.create(payload=payload, access_token=credentials.credentials)
+
+
+@router.get("", response_model=ProjectMainPageInfoResponseSchema)
+async def get_by_id(
+        project_id: UUID,
+        credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
+        project_service: ProjectService = Depends(ProjectService)
+):
+    return await project_service.get_by_id(project_id=project_id, access_token=credentials.credentials)
+
+
+@router.get("/members", response_model=ProjectMembersResponseSchema)
+async def get_members(
+        project_id: UUID,
+        credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
+        project_service: ProjectService = Depends(ProjectService)
+):
+    return await project_service.get_members(project_id=project_id, access_token=credentials.credentials)
+
+
+@router.post("/invite")
+async def invite_user(
+        payload: InviteUserRequestSchema,
+        credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
+        project_service: ProjectService = Depends(ProjectService)
+):
+    return await project_service.invite_user(payload=payload, access_token=credentials.credentials)
