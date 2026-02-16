@@ -38,3 +38,21 @@ class ProjectRepository:
         self.db.add(project)
         await self.db.flush()
         return project
+
+    async def get_by_id(self, project_id: UUID) -> Project | None:
+        result = await self.db.execute(
+            select(Project)
+            .where(Project.id == project_id)
+        )
+        project = result.scalar_one_or_none()
+        return project
+
+    async def get_members(self, project_id: UUID) -> Sequence[User]:
+        result = await self.db.execute(
+            select(User)
+            .join(UserProjectAssociation, UserProjectAssociation.user_id == User.id)
+            .where(UserProjectAssociation.project_id == project_id)
+        )
+
+        members = result.scalars().all()
+        return members

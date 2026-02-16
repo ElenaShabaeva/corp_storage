@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "../store/auth";
+import { useProfileStore } from "../store/profile";
+import { useProjectsStore } from "../store/projects";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -28,13 +30,39 @@ const router = createRouter({
       component: () => import("@/pages/ProjectsPage.vue"),
       meta: { requiresAuth: true },
     },
+    {
+      path: "/project/:id",
+      name: "project",
+      component: () => import("@/pages/project/ProjectPage.vue"),
+      meta: { requiresAuth: true },
+      children: [
+        {
+          path: "",
+          redirect: { name: "members" },
+        },
+        {
+          path: "members",
+          name: "members",
+          component: () => import("@/pages/project/MembersPage.vue"),
+        },
+      ],
+    },
   ],
 });
 
 router.beforeEach((to, from, next) => {
-  const store = useAuthStore();
+  const authStore = useAuthStore();
+  const profileStore = useProfileStore()
+  const projectsStore = useProjectsStore()
 
-  if (to.meta.requiresAuth && !store.token) {
+  authStore.serverError = ''
+  profileStore.serverError = ''
+  projectsStore.serverError = ''
+
+  profileStore.success = ''
+  projectsStore.success = ''
+
+  if (to.meta.requiresAuth && !authStore.token) {
     next({
       name: "login",
       query: { redirect: to.fullPath },
@@ -42,8 +70,8 @@ router.beforeEach((to, from, next) => {
     return;
   }
 
-  if (store.token && (to.name === "login" || to.name === "registration")) {
-    next({ name: "project" });
+  if (authStore.token && (to.name === "login" || to.name === "registration")) {
+    next({ name: "projects" });
     return;
   }
 
