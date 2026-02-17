@@ -11,16 +11,19 @@ export const useProjectsStore = defineStore("projects", () => {
   const showCreateModal = ref(false);
   const showInviteModal = ref(false);
   const showLeaveModal = ref(false);
+  const showKickModal = ref(false);
   const initialLoading = ref(false);
   const createLoading = ref(false);
   const infoLoading = ref(false);
   const membersLoading = ref(false);
   const inviteLoading = ref(false);
   const leaveLoading = ref(false);
+  const kickLoading = ref(false);
   const serverError = ref("");
   const success = ref("");
 
   const currentProject = ref(null);
+  const currentMember = ref(null);
 
   const savedProjects = () => {
     try {
@@ -177,6 +180,33 @@ export const useProjectsStore = defineStore("projects", () => {
     }
   }
 
+  async function kickProject(id) {
+    try {
+      showKickModal.value = false;
+      kickLoading.value = true;
+      serverError.value = "";
+
+      const data = await api.request('/project/kick', {
+        method: "POST",
+        body: JSON.stringify({
+          login: currentMember.value,
+          project_id: id,
+        }),
+      });
+
+      console.log(data);
+
+      success.value = `'${currentMember.value}' исключен из проекта`;
+      setTimeout(() => (success.value = ""), 4000);
+    } catch (e) {
+      serverError.value = `Не удалось исключить из проекта '${currentMember.value}'`;
+      setTimeout(() => (serverError.value = ""), 4000);
+    } finally {
+      kickLoading.value = false;
+      currentMember.value = null
+    }
+  }
+
   function openCreateModal() {
     showCreateModal.value = true;
   }
@@ -200,6 +230,15 @@ export const useProjectsStore = defineStore("projects", () => {
     showLeaveModal.value = false;
   }
 
+  function openKickModal(member) {
+    currentMember.value = member;
+    showKickModal.value = true;
+  }
+  function closeKickModal() {
+    currentMember.value = null;
+    showKickModal.value = false;
+  }
+
   return {
     projects,
     projectInfo,
@@ -208,12 +247,14 @@ export const useProjectsStore = defineStore("projects", () => {
     showCreateModal,
     showInviteModal,
     showLeaveModal,
+    showKickModal,
     initialLoading,
     createLoading,
     infoLoading,
     membersLoading,
     inviteLoading,
     leaveLoading,
+    kickLoading,
     serverError,
     success,
     getProjects,
@@ -222,11 +263,15 @@ export const useProjectsStore = defineStore("projects", () => {
     getProjectMembers,
     inviteMember,
     leaveProject,
+    kickProject,
     openCreateModal,
     closeCreateModal,
     openInviteModal,
     closeInviteModal,
     openLeaveModal,
     closeLeaveModal,
+    openKickModal,
+    closeKickModal,
+    currentMember
   };
 });

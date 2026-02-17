@@ -8,6 +8,6 @@ class ProjectCreateRequestSchema(BaseModel):
     description: Optional[str] = Field(default=None, max_length=200)
 
 
-class InviteUserRequestSchema(BaseModel):
+class InviteKickUserRequestSchema(BaseModel):
     login: str
     project_id: UUID

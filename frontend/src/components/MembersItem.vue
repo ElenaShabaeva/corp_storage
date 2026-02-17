@@ -1,7 +1,7 @@
 <template>
   <li class="members-item">
     <span>{{ member.login }}</span>
-    <my-text-button type="button" v-if="store.projectOwner">Исключить из проекта</my-text-button>
+    <my-text-button type="button" v-if="store.projectOwner" @click="handleKick">Исключить из проекта</my-text-button>
   </li>
 </template>
 
@@ -16,6 +16,10 @@ const props = defineProps({
 });
 
 const store = useProjectsStore()
+
+async function handleKick() {
+  store.openKickModal(props.member.login)
+}
 </script>
 
 <style lang="less">
