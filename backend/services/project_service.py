@@ -283,7 +283,7 @@ class ProjectService:
                 project.members_count -= 1
             return MessageResponseSchema(
                 status="success",
-                message="Пользователь успешно выгнан из проекта"
+                message="Пользователь успешно исключен из проекта"
             )
         except ExpiredSignatureError:
             raise HTTPException(
