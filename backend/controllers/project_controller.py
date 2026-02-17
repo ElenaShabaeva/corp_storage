@@ -6,7 +6,7 @@ from services.project_service import ProjectService
 from uuid import UUID
 from schemas.request.project_request import (
     ProjectCreateRequestSchema,
-    InviteUserRequestSchema
+    InviteKickUserRequestSchema
 )
 from schemas.response.standart_message import MessageResponseSchema
 from schemas.response.project_response import (
@@ -60,7 +60,7 @@ async def get_members(
 
 @router.post("/invite", response_model=MessageResponseSchema)
 async def invite_user(
-        payload: InviteUserRequestSchema,
+        payload: InviteKickUserRequestSchema,
         credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
         project_service: ProjectService = Depends(ProjectService)
 ):
@@ -74,3 +74,12 @@ async def leave(
         project_service: ProjectService = Depends(ProjectService)
 ):
     return await project_service.leave(project_id=project_id, access_token=credentials.credentials)
+
+
+@router.post("/kick")
+async def kick_member(
+        payload: InviteKickUserRequestSchema,
+        credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
+        project_service: ProjectService = Depends(ProjectService)
+):
+    return await project_service.kick_member(access_token=credentials.credentials, payload=payload)
