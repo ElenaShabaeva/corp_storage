@@ -6,21 +6,24 @@
         <h1 class="title">Профиль</h1>
         <ProfileForm/>
       </div>
+      <ProjectsListing />
     </div>
   </div>
   <Loading :title="'Идет обновление данных'" v-if="store.updateLoading" />
   <Loading :title="'Идет удаление аккаунта'" v-if="store.deleteLoading" />
+  <Loading :title="'Идет выход из проекта'" v-if="store.leaveLoading" />
   <DeleteProfile
     v-if="store.showDeleteModal"
   />
-  <Transition name="modal" appear v-if="store.serverError">
-    <div class="modal" :class="{ 'modal--error': store.serverError }">
-      {{ store.serverError }}
+  <LeaveProject v-if="projectsStore.showLeaveModal"/>
+  <Transition name="modal" appear v-if="store.serverError || projectsStore.serverError">
+    <div class="modal" :class="{ 'modal--error': store.serverError || projectsStore.serverError }">
+      {{ store.serverError || projectsStore.serverError }}
     </div>
   </Transition>
-  <Transition name="modal" appear v-if="store.success">
-    <div class="modal" :class="{ 'modal--success': store.success }">
-      {{ store.success }}
+  <Transition name="modal" appear v-if="store.success || projectsStore.success">
+    <div class="modal" :class="{ 'modal--success': store.success || projectsStore.success }">
+      {{ store.success || projectsStore.success }}
     </div>
   </Transition>
 </template>
@@ -32,11 +35,16 @@ import ProfileSkeleton from "../components/skeleton/ProfileSkeleton.vue";
 import { useProfileStore } from "../store/profile";
 import DeleteProfile from "../components/DeleteProfile.vue";
 import Loading from "../components/Loading.vue";
+import ProjectsListing from "../components/ProjectsListing.vue";
+import { useProjectsStore } from "../store/projects";
+import LeaveProject from "../components/LeaveProject.vue";
 
 const store = useProfileStore();
+const projectsStore = useProjectsStore()
 
 onMounted(async () => {
   await store.getProfile();
+  await projectsStore.getProjects()
 });
 </script>
 
