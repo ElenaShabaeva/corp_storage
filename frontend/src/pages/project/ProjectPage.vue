@@ -21,8 +21,10 @@
   </div>
 
   <InviteMemberForm v-if="store.showInviteModal"/>
+  <KickMember v-if="store.showKickModal"/>
 
   <Loading :title="'Идет отправка приглашения'" v-if="store.inviteLoading" />
+  <Loading :title="'Идет исключение из проекта'" v-if="store.kickLoading" />
 
   <Transition name="modal" appear v-if="store.serverError">
     <div class="modal" :class="{ 'modal--error': store.serverError }">
@@ -42,6 +44,7 @@ import { useProjectsStore } from "../../store/projects";
 import { computed, onMounted } from "vue";
 import MemberSkeleton from "../../components/skeleton/MemberSkeleton.vue";
 import InviteMemberForm from "../../components/InviteMemberForm.vue";
+import KickMember from "../../components/KickMember.vue";
 
 const route = useRoute();
 const id = route.params.id;
