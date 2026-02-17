@@ -1,22 +1,35 @@
 <template>
-  <li class="project-card">
+  <li class="project-card" @click="goToProject">
     <p class="project-card__name">{{ project.name }}</p>
     <div class="project-card__body">
       <div class="project-card__info">
         <span>Создан: {{ project.creator_login }}</span>
         <span>Участников: {{ project.members_count }}</span>
       </div>
-      <my-text-button>Покинуть проект</my-text-button>
+      <my-text-button @click.stop="handleLeave">Покинуть проект</my-text-button>
     </div>
   </li>
 </template>
 
 <script setup>
+import router from '../router';
+import { useProjectsStore } from '../store/projects';
+
+const store = useProjectsStore()
+
 const props = defineProps({
   project: {
     type: Object,
-  }
-})
+  },
+});
+
+const goToProject = () => {
+  router.push(`/project/${props.project.id}/`)
+};
+
+async function handleLeave() {
+  store.openLeaveModal(props.project)
+}
 </script>
 
 <style lang="less">
