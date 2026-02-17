@@ -34,7 +34,7 @@ class User(Base):
         back_populates="from_user",
         cascade="all, delete-orphan"
     )
-    receive_messages = relationship(
+    received_messages = relationship(
         "MessageNotification",
         foreign_keys="MessageNotification.to_user_id",
         back_populates="to_user",
