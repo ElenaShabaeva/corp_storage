@@ -1,4 +1,3 @@
-from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
 from utils.jwt_utils import decode_jwt
 from jwt import ExpiredSignatureError, DecodeError
