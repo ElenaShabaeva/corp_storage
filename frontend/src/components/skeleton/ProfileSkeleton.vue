@@ -24,21 +24,15 @@
           </div>
         </div>
       </div>
-      <div>
-        <h2 class="title">Проекты</h2>
-        <div class="skeleton__projects">
-          <div class="skeleton__project"></div>
-          <div class="skeleton__project"></div>
-          <div class="skeleton__project"></div>
-          <div class="skeleton__project"></div>
-          <div class="skeleton__project"></div>
-        </div>
-      </div>
+      <ProjectsSkeleton/>
     </div>
   </div>
 </template>
 
-<script setup></script>
+<script setup>
+import ProjectsSkeleton from './ProjectsSkeleton.vue';
+
+</script>
 
 <style lang="less" scoped>
 .skeleton {
@@ -56,8 +50,7 @@
 
   &__field-label,
   &__field-input,
-  &__button,
-  &__project {    
+  &__button {    
     background: @skeleton;
     background-size: 200% 100%;
     animation: loading 1.5s infinite;
