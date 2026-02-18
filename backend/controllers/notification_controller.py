@@ -59,6 +59,15 @@ async def decline_invite(
     return await project_service.decline_invite(invite_id=invite_id, access_token=credentials.credentials)
 
 
+@router.delete("/invites/delete")
+async def delete_invite(
+        invite_id: UUID,
+        credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
+        invite_notification_service: InviteNotificationService = Depends(InviteNotificationService)
+):
+    return await invite_notification_service.delete_invite(invite_id=invite_id, access_token=credentials.credentials)
+
+
 @router.get("/messages")
 async def get_all_messages(
         credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),

@@ -2,10 +2,13 @@ from fastapi import HTTPException, status
 from utils.jwt_utils import decode_jwt
 from jwt import ExpiredSignatureError, DecodeError
 from utils.uow import UnitOfWork
+from uuid import UUID
+from schemas.internal.invite_status_enum import InviteStatus
 from schemas.response.invite_notification_response import (
     InviteNotificationResponseSchema,
     InviteNotificationsResponseSchemas
 )
+from schemas.response.standart_message import MessageResponseSchema
 
 
 class InviteNotificationService:
@@ -32,6 +35,44 @@ class InviteNotificationService:
                         state=invite.state,
                         date_time=invite.invite_datetime.strftime("%d.%m.%Y / %H:%M"),
                     ) for invite in invites]
+                )
+        except ExpiredSignatureError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Access token истек"
+            )
+        except DecodeError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Неверный формат токена"
+            )
+
+    async def delete_invite(self, invite_id: UUID, access_token: str | None):
+        if not access_token:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Access token не найден"
+            )
+        try:
+            user_id, _ = decode_jwt(token=access_token)
+
+            async with self.uow.start():
+                invite = await self.uow.invite_notifications.get_by_id_and_user_id(invite_id=invite_id, user_id=user_id)
+                if not invite:
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail="Приглашение не найдено"
+                    )
+                if invite.state == InviteStatus.SENT:
+                    raise HTTPException(
+                        status_code=status.HTTP_409_CONFLICT,
+                        detail="Нельзя удалить действующее приглашение"
+                    )
+
+                await self.uow.invite_notifications.delete(invite_id=invite_id)
+                return MessageResponseSchema(
+                    status="success",
+                    message="Приглашение удалено"
                 )
         except ExpiredSignatureError:
             raise HTTPException(
