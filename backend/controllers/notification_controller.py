@@ -92,23 +92,31 @@ async def get_all_messages(
 async def read(
         message_id: UUID,
         credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
-        messages_notification_service: MessageNotificationService = Depends(MessageNotificationService)
+        message_notification_service: MessageNotificationService = Depends(MessageNotificationService)
 ):
-    return await messages_notification_service.read(message_id=message_id, access_token=credentials.credentials)
+    return await message_notification_service.read(message_id=message_id, access_token=credentials.credentials)
 
 
 @router.patch("/messages/read-all", response_model=MessageResponseSchema)
 async def read_all(
         credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
-        messages_notification_service: MessageNotificationService = Depends(MessageNotificationService)
+        message_notification_service: MessageNotificationService = Depends(MessageNotificationService)
 ):
-    return await messages_notification_service.read_all(access_token=credentials.credentials)
+    return await message_notification_service.read_all(access_token=credentials.credentials)
 
 
 @router.delete("/messages/delete", response_model=MessageResponseSchema)
 async def delete_message(
         message_id: UUID,
         credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
-        messages_notification_service: MessageNotificationService = Depends(MessageNotificationService)
+        message_notification_service: MessageNotificationService = Depends(MessageNotificationService)
 ):
-    return await messages_notification_service.delete_message(message_id=message_id, access_token=credentials.credentials)
+    return await message_notification_service.delete_message(message_id=message_id, access_token=credentials.credentials)
+
+
+@router.delete("/messages/delete-all", response_model=MessageResponseSchema)
+async def delete_all_messages(
+        credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
+        message_notification_service: MessageNotificationService = Depends(MessageNotificationService)
+):
+    return await message_notification_service.delete_all(access_token=credentials.credentials)

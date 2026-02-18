@@ -66,3 +66,11 @@ class MessageNotificationRepository:
         )
 
         return result.rowcount
+
+    async def delete_all(self, user_id: UUID) -> int:
+        result = await self._db.execute(
+            delete(MessageNotification)
+            .where(MessageNotification.to_user_id == user_id)
+        )
+
+        return result.rowcount
