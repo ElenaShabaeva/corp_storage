@@ -37,3 +37,13 @@ class MessageNotificationRepository:
         )
         messages = result.scalars().all()
         return messages
+
+    async def get_by_id(self, message_id: UUID, user_id: UUID) -> MessageNotification | None:
+        result = await self._db.execute(
+            select(MessageNotification)
+            .where(MessageNotification.id == message_id)
+            .where(MessageNotification.to_user_id == user_id)
+        )
+
+        message = result.scalar_one_or_none()
+        return message

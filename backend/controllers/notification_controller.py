@@ -9,8 +9,10 @@ from sse_starlette import EventSourceResponse
 from schemas.response.invite_notification_response import InviteNotificationsResponseSchemas
 from uuid import UUID
 from schemas.response.standart_message import MessageResponseSchema
-from schemas.response.message_notification_response import MessagesNotificationResponseSchema
-
+from schemas.response.message_notification_response import (
+    MessagesNotificationResponseSchema,
+    MessageNotificationResponseSchema
+)
 
 router = APIRouter(
     prefix="/notification",
@@ -84,3 +86,12 @@ async def get_all_messages(
         message_notification_service: MessageNotificationService = Depends(MessageNotificationService)
 ):
     return await message_notification_service.get_all_message(access_token=credentials.credentials)
+
+
+@router.patch("/messages/read", response_model=MessageNotificationResponseSchema)
+async def read(
+        message_id: UUID,
+        credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
+        messages_notification_service: MessageNotificationService = Depends(MessageNotificationService)
+):
+    return await messages_notification_service.read(message_id=message_id, access_token=credentials.credentials)

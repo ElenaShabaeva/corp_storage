@@ -2,6 +2,7 @@ from fastapi import HTTPException, status
 from utils.jwt_utils import decode_jwt
 from jwt import ExpiredSignatureError, DecodeError
 from utils.uow import UnitOfWork
+from uuid import UUID
 from schemas.response.message_notification_response import (
     MessageNotificationResponseSchema,
     MessagesNotificationResponseSchema
@@ -32,6 +33,44 @@ class MessageNotificationService:
                     date_time=message.message_datetime.strftime("%d.%m.%Y / %H:%M"),
                     is_read=message.is_read
                 ) for message in messages]
+            )
+        except ExpiredSignatureError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Access token истек"
+            )
+        except DecodeError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Неверный формат токена"
+            )
+
+    async def read(self, message_id: UUID, access_token: str | None) -> MessageNotificationResponseSchema:
+        if not access_token:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Access token не найден"
+            )
+        try:
+            user_id, _ = decode_jwt(token=access_token)
+
+            async with self.uow.start():
+                message = await self.uow.message_notifications.get_by_id(
+                    message_id=message_id,
+                    user_id=user_id
+                )
+                if not message:
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail="Сообщение не найдено"
+                    )
+                message.is_read = True
+
+            return MessageNotificationResponseSchema(
+                id=message.id,
+                message=message.message,
+                date_time=message.message_datetime.strftime("%d.%m.%Y / %H:%M"),
+                is_read=message.is_read
             )
         except ExpiredSignatureError:
             raise HTTPException(
