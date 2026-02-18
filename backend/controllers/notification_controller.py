@@ -97,9 +97,18 @@ async def read(
     return await messages_notification_service.read(message_id=message_id, access_token=credentials.credentials)
 
 
-@router.patch("/messages/read-all")
+@router.patch("/messages/read-all", response_model=MessageResponseSchema)
 async def read_all(
         credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
         messages_notification_service: MessageNotificationService = Depends(MessageNotificationService)
 ):
     return await messages_notification_service.read_all(access_token=credentials.credentials)
+
+
+@router.delete("/messages/delete", response_model=MessageResponseSchema)
+async def delete_message(
+        message_id: UUID,
+        credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
+        messages_notification_service: MessageNotificationService = Depends(MessageNotificationService)
+):
+    return await messages_notification_service.delete_message(message_id=message_id, access_token=credentials.credentials)

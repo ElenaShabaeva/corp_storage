@@ -57,3 +57,12 @@ class MessageNotificationRepository:
 
         messages = result.scalars().all()
         return messages
+
+    async def delete(self, message_id: UUID, user_id: UUID) -> int:
+        result = await self._db.execute(
+            delete(MessageNotification)
+            .where(MessageNotification.id == message_id)
+            .where(MessageNotification.to_user_id == user_id)
+        )
+
+        return result.rowcount

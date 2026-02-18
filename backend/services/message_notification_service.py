@@ -112,3 +112,33 @@ class MessageNotificationService:
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Неверный формат токена"
             )
+
+    async def delete_message(self, message_id: UUID, access_token: str | None):
+        if not access_token:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Access token не найден"
+            )
+        try:
+            user_id, _ = decode_jwt(token=access_token)
+
+            async with self.uow.start():
+                rowcount = await self.uow.message_notifications.delete(
+                    message_id=message_id,
+                    user_id=user_id
+                )
+
+            return MessageResponseSchema(
+                status="success",
+                message=f"Удалено записей: {rowcount}"
+            )
+        except ExpiredSignatureError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Access token истек"
+            )
+        except DecodeError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Неверный формат токена"
+            )
