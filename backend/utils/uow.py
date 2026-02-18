@@ -3,6 +3,8 @@ from repository.user_repository import UserRepository
 from repository.project_repository import ProjectRepository
 from repository.user_project_association_repository import UserProjectAssociationRepository
 from repository.refresh_token_repository import RefreshTokenRepository
+from repository.invite_notification_repository import InviteNotificationRepository
+from repository.message_notification_repository import MessageNotificationRepository
 from database.database import async_session
 
 
@@ -39,3 +41,11 @@ class UnitOfWork:
     @property
     def refresh_tokens(self) -> RefreshTokenRepository:
         return RefreshTokenRepository(db=self._session)
+
+    @property
+    def invite_notifications(self) -> InviteNotificationRepository:
+        return InviteNotificationRepository(db=self._session)
+
+    @property
+    def message_notifications(self) -> MessageNotificationRepository:
+        return MessageNotificationRepository(db=self._session)
