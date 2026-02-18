@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
 from sqlalchemy.orm import selectinload
 from models.invite_notification import InviteNotification
+from models.project import Project
 from uuid import UUID
 from datetime import datetime
 from schemas.internal.invite_status_enum import InviteStatus
@@ -40,3 +41,15 @@ class InviteNotificationRepository:
 
         invite_notification = result.scalar_one_or_none()
         return invite_notification
+
+    async def get_by_user_id(self, to_user_id: UUID) -> Sequence[InviteNotification]:
+        result = await self._db.execute(
+            select(InviteNotification)
+            .where(InviteNotification.to_user_id == to_user_id)
+            .options(
+                selectinload(InviteNotification.project)
+                .selectinload(Project.creator)
+            )
+        )
+        invites = result.scalars().all()
+        return invites
