@@ -331,7 +331,7 @@ class ProjectService:
                 invited_user = await self.uow.users.get_by_id(user_id=invite.to_user_id)
 
                 date_time = datetime.now()
-                message = f"{invited_user.login} принял приглашение в {invite.project.name}"
+                message = f"{invited_user.login} отклонил приглашение в {invite.project.name}"
                 message_db = await self.uow.message_notifications.post(
                     message=message,
                     message_datetime=date_time,
