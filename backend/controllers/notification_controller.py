@@ -8,6 +8,8 @@ from services.project_service import ProjectService
 from sse_starlette import EventSourceResponse
 from schemas.response.invite_notification_response import InviteNotificationsResponseSchemas
 from uuid import UUID
+from schemas.response.standart_message import MessageResponseSchema
+from schemas.response.message_notification_response import MessagesNotificationResponseSchema
 
 
 router = APIRouter(
@@ -41,7 +43,7 @@ async def get_all_invites(
     return await invite_notification_service.get_all_invites(access_token=credentials.credentials)
 
 
-@router.post("/invites/accept")
+@router.post("/invites/accept", response_model=MessageResponseSchema)
 async def accept_invite(
         invite_id: UUID,
         credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
@@ -50,7 +52,7 @@ async def accept_invite(
     return await project_service.accept_invite(invite_id=invite_id, access_token=credentials.credentials)
 
 
-@router.post("/invites/decline")
+@router.post("/invites/decline", response_model=MessageResponseSchema)
 async def decline_invite(
         invite_id: UUID,
         credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
@@ -59,7 +61,7 @@ async def decline_invite(
     return await project_service.decline_invite(invite_id=invite_id, access_token=credentials.credentials)
 
 
-@router.delete("/invites/delete")
+@router.delete("/invites/delete", response_model=MessageResponseSchema)
 async def delete_invite(
         invite_id: UUID,
         credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
@@ -68,7 +70,15 @@ async def delete_invite(
     return await invite_notification_service.delete_invite(invite_id=invite_id, access_token=credentials.credentials)
 
 
-@router.get("/messages")
+@router.delete("/invites/delete_all", response_model=MessageResponseSchema)
+async def delete_all_invites(
+        credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
+        invite_notification_service: InviteNotificationService = Depends(InviteNotificationService)
+):
+    return await invite_notification_service.delete_all_invites(access_token=credentials.credentials)
+
+
+@router.get("/messages", response_model=MessagesNotificationResponseSchema)
 async def get_all_messages(
         credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
         message_notification_service: MessageNotificationService = Depends(MessageNotificationService)

@@ -244,7 +244,7 @@ class ProjectService:
                 detail="Неверный формат токена"
             )
 
-    async def accept_invite(self, invite_id: UUID, access_token: str | None):
+    async def accept_invite(self, invite_id: UUID, access_token: str | None) -> MessageResponseSchema:
         if not access_token:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -306,7 +306,7 @@ class ProjectService:
                 detail="Неверный формат токена"
             )
 
-    async def decline_invite(self, invite_id: UUID, access_token: str | None):
+    async def decline_invite(self, invite_id: UUID, access_token: str | None) -> MessageResponseSchema:
         if not access_token:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
