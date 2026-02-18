@@ -41,13 +41,22 @@ async def get_all_invites(
     return await invite_notification_service.get_all_invites(access_token=credentials.credentials)
 
 
-@router.post("/invites/accept/{invite_id}")
+@router.post("/invites/accept")
 async def accept_invite(
         invite_id: UUID,
         credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
         project_service: ProjectService = Depends(ProjectService)
 ):
     return await project_service.accept_invite(invite_id=invite_id, access_token=credentials.credentials)
+
+
+@router.post("/invites/decline")
+async def decline_invite(
+        invite_id: UUID,
+        credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
+        project_service: ProjectService = Depends(ProjectService)
+):
+    return await project_service.decline_invite(invite_id=invite_id, access_token=credentials.credentials)
 
 
 @router.get("/messages")

@@ -213,7 +213,7 @@ class ProjectService:
 
                 creator = await self.uow.users.get_by_id(user_id=project.creator_id)
                 date_time = datetime.now()
-                await self.uow.invite_notifications.post(
+                invite_db = await self.uow.invite_notifications.post(
                     project_id=project.id,
                     invite_datetime=date_time,
                     from_user_id=user_id,
@@ -222,9 +222,11 @@ class ProjectService:
                 await notification_service.send_notification(
                     user_id=new_user_in_project.id,
                     notification=InviteNotificationSchema(
+                        id=invite_db.id,
                         project_name=project.name,
                         project_creator=creator.login,
-                        date_time=date_time.strftime("%d.%m.%Y / %H:%M")
+                        date_time=date_time.strftime("%d.%m.%Y / %H:%M"),
+                        state=invite_db.state
                     )
                 )
             return MessageResponseSchema(
@@ -272,7 +274,7 @@ class ProjectService:
 
                 date_time = datetime.now()
                 message = f"{invited_user.login} принял приглашение в {invite.project.name}"
-                await self.uow.message_notifications.post(
+                message_db = await self.uow.message_notifications.post(
                     message=message,
                     message_datetime=date_time,
                     from_user_id=invite.to_user_id,
@@ -282,6 +284,7 @@ class ProjectService:
                 await notification_service.send_notification(
                     user_id=invite.from_user_id,
                     notification=MessageNotificationSchema(
+                        id=message_db.id,
                         message=message,
                         date_time=date_time.strftime("%d.%m.%Y / %H:%M")
                     )
@@ -296,6 +299,61 @@ class ProjectService:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Access token истек"
+            )
+        except DecodeError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Неверный формат токена"
+            )
+
+    async def decline_invite(self, invite_id: UUID, access_token: str | None):
+        if not access_token:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Access токен не найден"
+            )
+        try:
+            user_id, _ = decode_jwt(token=access_token)
+
+            async with self.uow.start():
+                invite = await self.uow.invite_notifications.get_by_id(invite_id=invite_id)
+                if not invite:
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail="Приглашение не найдено"
+                    )
+                if invite.state == InviteStatus.ACCEPTED or invite.state == InviteStatus.DECLINED:
+                    raise HTTPException(
+                        status_code=status.HTTP_409_CONFLICT,
+                        detail="Приглашение уже принято или отклонено"
+                    )
+                invite.state = InviteStatus.DECLINED
+                invited_user = await self.uow.users.get_by_id(user_id=invite.to_user_id)
+
+                date_time = datetime.now()
+                message = f"{invited_user.login} принял приглашение в {invite.project.name}"
+                message_db = await self.uow.message_notifications.post(
+                    message=message,
+                    message_datetime=date_time,
+                    from_user_id=invite.to_user_id,
+                    to_user_id=invite.from_user_id
+                )
+                await notification_service.send_notification(
+                    user_id=invite.from_user_id,
+                    notification=MessageNotificationSchema(
+                        id=message_db.id,
+                        message=message,
+                        date_time=date_time.strftime("%d.%m.%Y / %H:%M")
+                    )
+                )
+            return MessageResponseSchema(
+                status="success",
+                message="Приглашение отклонено"
+            )
+        except ExpiredSignatureError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Access токен истек"
             )
         except DecodeError:
             raise HTTPException(
