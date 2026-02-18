@@ -4,6 +4,7 @@ from configuration import settings
 from services.notification_service import notification_service
 from services.invite_notification_service import InviteNotificationService
 from sse_starlette import EventSourceResponse
+from schemas.response.invite_notification_response import InviteNotificationsResponseSchemas
 
 
 router = APIRouter(
@@ -29,7 +30,7 @@ async def disconnect(
     return await notification_service.disconnect(access_token=credentials.credentials)
 
 
-@router.get("/invites")
+@router.get("/invites", response_model=InviteNotificationsResponseSchemas)
 async def get_all_invites(
         credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
         invite_notification_service: InviteNotificationService = Depends(InviteNotificationService)

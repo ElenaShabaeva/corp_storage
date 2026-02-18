@@ -26,8 +26,9 @@ class InviteNotificationService:
                 return InviteNotificationsResponseSchemas(
                     count=len(invites),
                     invites=[InviteNotificationResponseSchema(
+                        id=invite.id,
                         project_name=invite.project.name,
-                        project_creator=invite.project.creator.name,
+                        project_creator=invite.project.creator.login,
                         state=invite.state,
                         date_time=invite.invite_datetime.strftime("%d.%m.%Y / %H:%M"),
                     ) for invite in invites]

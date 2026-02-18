@@ -32,11 +32,12 @@ class InviteNotificationRepository:
         await self._db.flush()
         return invite_notification
 
-    async def get_by_user_and_project_ids(self, to_user_id: UUID, project_id: UUID) -> InviteNotification | None:
+    async def get_sent_by_user_and_project_ids(self, to_user_id: UUID, project_id: UUID) -> InviteNotification | None:
         result = await self._db.execute(
             select(InviteNotification)
             .where(InviteNotification.to_user_id == to_user_id)
             .where(InviteNotification.project_id == project_id)
+            .where(InviteNotification.state == InviteStatus.SENT)
         )
 
         invite_notification = result.scalar_one_or_none()
