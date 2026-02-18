@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials
 from configuration import settings
-from services.notification_service import NotificationService
+from services.notification_service import notification_service
+from sse_starlette import EventSourceResponse
 
 
 router = APIRouter(
@@ -9,14 +10,15 @@ router = APIRouter(
     tags=["Notification"]
 )
 
-notification_service = NotificationService()
-
 
 @router.get("/connect")
 async def connect(
-        credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer)
+        request: Request,
+        credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
 ):
-    return await notification_service.connect(access_token=credentials.credentials)
+    return EventSourceResponse(
+        notification_service.event_generator(access_token=credentials.credentials, request=request)
+    )
 
 
 @router.get("/disconnect")
