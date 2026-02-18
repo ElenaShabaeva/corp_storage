@@ -95,3 +95,11 @@ async def read(
         messages_notification_service: MessageNotificationService = Depends(MessageNotificationService)
 ):
     return await messages_notification_service.read(message_id=message_id, access_token=credentials.credentials)
+
+
+@router.patch("/messages/read-all")
+async def read_all(
+        credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
+        messages_notification_service: MessageNotificationService = Depends(MessageNotificationService)
+):
+    return await messages_notification_service.read_all(access_token=credentials.credentials)

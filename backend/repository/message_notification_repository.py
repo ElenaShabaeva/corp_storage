@@ -47,3 +47,13 @@ class MessageNotificationRepository:
 
         message = result.scalar_one_or_none()
         return message
+
+    async def get_all_unread(self, user_id: UUID) -> Sequence[MessageNotification]:
+        result = await self._db.execute(
+            select(MessageNotification)
+            .where(MessageNotification.to_user_id == user_id)
+            .where(MessageNotification.is_read == False)
+        )
+
+        messages = result.scalars().all()
+        return messages

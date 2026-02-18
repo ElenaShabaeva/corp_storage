@@ -3,6 +3,7 @@ from utils.jwt_utils import decode_jwt
 from jwt import ExpiredSignatureError, DecodeError
 from utils.uow import UnitOfWork
 from uuid import UUID
+from schemas.response.standart_message import MessageResponseSchema
 from schemas.response.message_notification_response import (
     MessageNotificationResponseSchema,
     MessagesNotificationResponseSchema
@@ -71,6 +72,35 @@ class MessageNotificationService:
                 message=message.message,
                 date_time=message.message_datetime.strftime("%d.%m.%Y / %H:%M"),
                 is_read=message.is_read
+            )
+        except ExpiredSignatureError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Access token истек"
+            )
+        except DecodeError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Неверный формат токена"
+            )
+
+    async def read_all(self, access_token: str | None):
+        if not access_token:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Access token не найден"
+            )
+        try:
+            user_id, _ = decode_jwt(token=access_token)
+
+            async with self.uow.start():
+                messages = await self.uow.message_notifications.get_all_unread(user_id=user_id)
+                for message in messages:
+                    message.is_read = True
+
+            return MessageResponseSchema(
+                status="success",
+                message=f"Прочитано сообщений: {len(messages)}"
             )
         except ExpiredSignatureError:
             raise HTTPException(
