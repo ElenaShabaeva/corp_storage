@@ -3,6 +3,7 @@ from fastapi.security import HTTPAuthorizationCredentials
 from configuration import settings
 from services.notification_service import notification_service
 from services.invite_notification_service import InviteNotificationService
+from services.message_notification_service import MessageNotificationService
 from services.project_service import ProjectService
 from sse_starlette import EventSourceResponse
 from schemas.response.invite_notification_response import InviteNotificationsResponseSchemas
@@ -47,3 +48,11 @@ async def accept_invite(
         project_service: ProjectService = Depends(ProjectService)
 ):
     return await project_service.accept_invite(invite_id=invite_id, access_token=credentials.credentials)
+
+
+@router.get("/messages")
+async def get_all_messages(
+        credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
+        message_notification_service: MessageNotificationService = Depends(MessageNotificationService)
+):
+    return await message_notification_service.get_all_message(access_token=credentials.credentials)

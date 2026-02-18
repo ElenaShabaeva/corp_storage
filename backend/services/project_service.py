@@ -268,6 +268,24 @@ class ProjectService:
                 )
                 invite.project.members_count += 1
                 invite.state = InviteStatus.ACCEPTED
+                invited_user = await self.uow.users.get_by_id(user_id=invite.to_user_id)
+
+                date_time = datetime.now()
+                message = f"{invited_user.login} принял приглашение в {invite.project.name}"
+                await self.uow.message_notifications.post(
+                    message=message,
+                    message_datetime=date_time,
+                    from_user_id=invite.to_user_id,
+                    to_user_id=invite.from_user_id
+                )
+
+                await notification_service.send_notification(
+                    user_id=invite.from_user_id,
+                    notification=MessageNotificationSchema(
+                        message=message,
+                        date_time=date_time.strftime("%d.%m.%Y / %H:%M")
+                    )
+                )
 
             return MessageResponseSchema(
                 status="success",

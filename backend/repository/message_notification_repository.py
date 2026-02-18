@@ -29,3 +29,11 @@ class MessageNotificationRepository:
         self._db.add(message_notification)
         await self._db.flush()
         return message_notification
+
+    async def get_all(self, user_id: UUID) -> Sequence[MessageNotification]:
+        result = await self._db.execute(
+            select(MessageNotification)
+            .where(MessageNotification.to_user_id == user_id)
+        )
+        messages = result.scalars().all()
+        return messages
