@@ -3,8 +3,10 @@ from fastapi.security import HTTPAuthorizationCredentials
 from configuration import settings
 from services.notification_service import notification_service
 from services.invite_notification_service import InviteNotificationService
+from services.project_service import ProjectService
 from sse_starlette import EventSourceResponse
 from schemas.response.invite_notification_response import InviteNotificationsResponseSchemas
+from uuid import UUID
 
 
 router = APIRouter(
@@ -36,3 +38,12 @@ async def get_all_invites(
         invite_notification_service: InviteNotificationService = Depends(InviteNotificationService)
 ):
     return await invite_notification_service.get_all_invites(access_token=credentials.credentials)
+
+
+@router.post("/invites/accept/{invite_id}")
+async def accept_invite(
+        invite_id: UUID,
+        credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
+        project_service: ProjectService = Depends(ProjectService)
+):
+    return await project_service.accept_invite(invite_id=invite_id, access_token=credentials.credentials)

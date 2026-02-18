@@ -16,6 +16,7 @@ from schemas.internal.notification_schema import (
     InviteNotificationSchema,
     MessageNotificationSchema
 )
+from schemas.internal.invite_status_enum import InviteStatus
 from schemas.response.project_response import (
     ProjectShortInfoResponseSchema,
     GetAllProjectsResponseSchema,
@@ -200,7 +201,7 @@ class ProjectService:
                         detail="Пользователь уже состоит в данном проекте"
                     )
 
-                invite_notification = await self.uow.invite_notifications.get_by_user_and_project_ids(
+                invite_notification = await self.uow.invite_notifications.get_sent_by_user_and_project_ids(
                     to_user_id=new_user_in_project.id,
                     project_id=project.id
                 )
@@ -230,6 +231,49 @@ class ProjectService:
                 status="success",
                 message="Приглашение в проект успешно отправлено"
             )
+        except ExpiredSignatureError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Access token истек"
+            )
+        except DecodeError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Неверный формат токена"
+            )
+
+    async def accept_invite(self, invite_id: UUID, access_token: str | None):
+        if not access_token:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Access токен не найден"
+            )
+        try:
+            user_id, _ = decode_jwt(token=access_token)
+            async with self.uow.start():
+                invite = await self.uow.invite_notifications.get_by_id(invite_id=invite_id)
+                if not invite:
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail="Приглашение не найдено"
+                    )
+                if invite.state == InviteStatus.ACCEPTED or invite.state == InviteStatus.DECLINED:
+                    raise HTTPException(
+                        status_code=status.HTTP_409_CONFLICT,
+                        detail="Приглашение уже принято или отклонено"
+                    )
+                await self.uow.user_project_association.add_member(
+                    user_id=invite.to_user_id,
+                    project_id=invite.project_id
+                )
+                invite.project.members_count += 1
+                invite.state = InviteStatus.ACCEPTED
+
+            return MessageResponseSchema(
+                status="success",
+                message="Приглашение принято"
+            )
+
         except ExpiredSignatureError:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,

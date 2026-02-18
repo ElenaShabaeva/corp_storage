@@ -54,3 +54,12 @@ class InviteNotificationRepository:
         )
         invites = result.scalars().all()
         return invites
+
+    async def get_by_id(self, invite_id: UUID) -> InviteNotification | None:
+        result = await self._db.execute(
+            select(InviteNotification)
+            .where(InviteNotification.id == invite_id)
+            .options(selectinload(InviteNotification.project))
+        )
+        invite = result.scalar_one_or_none()
+        return invite
