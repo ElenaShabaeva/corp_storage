@@ -286,6 +286,7 @@ class ProjectService:
                     notification=MessageNotificationSchema(
                         id=message_db.id,
                         message=message,
+                        is_read=message_db.is_read,
                         date_time=date_time.strftime("%d.%m.%Y / %H:%M")
                     )
                 )
@@ -343,6 +344,7 @@ class ProjectService:
                     notification=MessageNotificationSchema(
                         id=message_db.id,
                         message=message,
+                        is_read=message_db.is_read ,
                         date_time=date_time.strftime("%d.%m.%Y / %H:%M")
                     )
                 )

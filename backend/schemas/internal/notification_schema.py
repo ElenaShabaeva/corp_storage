@@ -13,4 +13,5 @@ class InviteNotificationSchema(BaseModel):
 class MessageNotificationSchema(BaseModel):
     id: UUID
     message: str
+    is_read: bool
     date_time: str
