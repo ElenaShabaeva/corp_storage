@@ -71,6 +71,7 @@ class MessageNotificationRepository:
         result = await self._db.execute(
             delete(MessageNotification)
             .where(MessageNotification.to_user_id == user_id)
+            .where(MessageNotification.is_read)
         )
 
         return result.rowcount

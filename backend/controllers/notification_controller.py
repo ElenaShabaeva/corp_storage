@@ -72,7 +72,7 @@ async def delete_invite(
     return await invite_notification_service.delete_invite(invite_id=invite_id, access_token=credentials.credentials)
 
 
-@router.delete("/invites/delete_all", response_model=MessageResponseSchema)
+@router.delete("/invites/delete-all", response_model=MessageResponseSchema)
 async def delete_all_invites(
         credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
         invite_notification_service: InviteNotificationService = Depends(InviteNotificationService)
