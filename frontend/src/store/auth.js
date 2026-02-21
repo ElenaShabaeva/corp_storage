@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import authService from "../services/auth.service";
 import router from "../router";
+import { useNotificationsStore } from "./notifications";
 
 export const useAuthStore = defineStore("auth", () => {
   const token = ref(localStorage.getItem("token") || null);
@@ -10,6 +11,8 @@ export const useAuthStore = defineStore("auth", () => {
   const loading = ref(false);
   const serverError = ref("");
   const fieldError = ref("");
+
+  const store = useNotificationsStore()
 
   async function registration(user) {
     try {
@@ -22,6 +25,7 @@ export const useAuthStore = defineStore("auth", () => {
       localStorage.setItem("token", data.token_info.token);
 
       router.push({ name: "profile" });
+      store.connectSSE()
     } catch (e) {
       if (e.message === 'Пользователь с таким "Логин" уже существует') {
         fieldError.value = e.message;
@@ -45,6 +49,7 @@ export const useAuthStore = defineStore("auth", () => {
       localStorage.setItem("token", data.token_info.token);
 
       router.push({ name: "profile" });
+      store.connectSSE()
     } catch (e) {
       if (e.message === "Неправильный логин или пароль") {
         fieldError.value = e.message;
@@ -68,6 +73,8 @@ export const useAuthStore = defineStore("auth", () => {
       localStorage.removeItem("token");
 
       router.push({ name: "login" });
+      
+      store.disconnectSSE()
     } catch (e) {
       serverError.value = e.message;
     } finally {
