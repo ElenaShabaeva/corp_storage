@@ -16,3 +16,27 @@ class User(Base):
     refresh_tokens = relationship("RefreshToken", back_populates="user", cascade="all, delete-orphan")
     project_association = relationship("UserProjectAssociation", back_populates="user")
     created_projects = relationship("Project", back_populates="creator", cascade="all, delete-orphan")
+    sent_invites = relationship(
+        "InviteNotification",
+        foreign_keys="InviteNotification.from_user_id",
+        back_populates="from_user",
+        cascade="all, delete-orphan"
+    )
+    received_invites = relationship(
+        "InviteNotification",
+        foreign_keys="InviteNotification.to_user_id",
+        back_populates="to_user",
+        cascade="all, delete-orphan"
+    )
+    sent_messages = relationship(
+        "MessageNotification",
+        foreign_keys="MessageNotification.from_user_id",
+        back_populates="from_user",
+        cascade="all, delete-orphan"
+    )
+    received_messages = relationship(
+        "MessageNotification",
+        foreign_keys="MessageNotification.to_user_id",
+        back_populates="to_user",
+        cascade="all, delete-orphan"
+    )

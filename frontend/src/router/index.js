@@ -47,6 +47,28 @@ const router = createRouter({
         },
       ],
     },
+    {
+      path: "/notification",
+      name: "notification",
+      component: () => import("@/pages/notifications/NotificationPage.vue"),
+      meta: {requiresAuth: true},
+      children: [
+        {
+          path: "",
+          redirect: {name: 'messages'}
+        },
+        {
+          path: "messages",
+          name: "messages",
+          component: () => import("@/pages/notifications/MessagesPage.vue")
+        },
+        {
+          path: "invites",
+          name: "invites",
+          component: () => import("@/pages/notifications/InvitesPage.vue")
+        }
+      ]
+    }
   ],
 });
 

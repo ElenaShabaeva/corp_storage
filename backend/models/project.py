@@ -20,3 +20,4 @@ class Project(Base):
 
     creator = relationship("User", back_populates="created_projects")
     user_association = relationship("UserProjectAssociation", back_populates="project")
+    invites = relationship("InviteNotification", back_populates="project")
