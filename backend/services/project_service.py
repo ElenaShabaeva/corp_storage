@@ -349,7 +349,7 @@ class ProjectService:
                     notification=MessageNotificationSchema(
                         id=message_db.id,
                         message=message,
-                        is_read=message_db.is_read ,
+                        is_read=message_db.is_read,
                         date_time=date_time.strftime("%d.%m.%Y / %H:%M")
                     )
                 )
@@ -381,7 +381,46 @@ class ProjectService:
                 if project.creator_id != user_id:
                     await self.uow.user_project_association.delete(user_id=user_id, project_id=project_id)
                     project.members_count -= 1
+
+                    user = await self.uow.users.get_by_id(user_id=user_id)
+                    date_time = datetime.now()
+                    message = f"{user.login} покинул проект {project.name}"
+
+                    message_db = await self.uow.message_notifications.post(
+                        message=message,
+                        message_datetime=date_time,
+                        from_user_id=user.id,
+                        to_user_id=project.creator_id
+                    )
+                    await notification_service.send_notification(
+                        user_id=user.id,
+                        notification=MessageNotificationSchema(
+                            id=message_db.id,
+                            message=message,
+                            is_read=message_db.is_read,
+                            date_time=date_time.strftime("%d.%m.%Y / %H:%M")
+                        )
+                    )
                 else:
+                    members = await self.uow.projects.get_members(project_id=project.id)
+                    date_time = datetime.now()
+                    message = f"Проект {project.name} был удален"
+                    for member in members:
+                        message_db = await self.uow.message_notifications.post(
+                            message=message,
+                            message_datetime=date_time,
+                            from_user_id=user_id,
+                            to_user_id=member.id
+                        )
+                        await notification_service.send_notification(
+                            user_id=member.id,
+                            notification=MessageNotificationSchema(
+                                id=message_db.id,
+                                message=message,
+                                is_read=message_db.is_read,
+                                date_time=date_time.strftime("%d.%m.%Y / %H:%M")
+                            )
+                        )
                     await self.uow.projects.delete(project_id=project_id)
 
             return MessageResponseSchema(
@@ -437,6 +476,27 @@ class ProjectService:
                     )
                 await self.uow.user_project_association.delete(user_id=user.id, project_id=project.id)
                 project.members_count -= 1
+
+                date_time = datetime.now()
+                message = f"Вас исключили из {project.name}"
+
+                message_db = await self.uow.message_notifications.post(
+                    message=message,
+                    message_datetime=date_time,
+                    from_user_id=user_id,
+                    to_user_id=user.id
+                )
+
+                await notification_service.send_notification(
+                    user_id=message_db.to_user_id,
+                    notification=MessageNotificationSchema(
+                        id=message_db.id,
+                        message=message,
+                        is_read=message_db.is_read,
+                        date_time=date_time.strftime("%d.%m.%Y / %H:%M")
+                    )
+                )
+
             return MessageResponseSchema(
                 status="success",
                 message="Пользователь успешно выгнан из проекта"
