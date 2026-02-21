@@ -34,6 +34,7 @@ class MessageNotificationRepository:
         result = await self._db.execute(
             select(MessageNotification)
             .where(MessageNotification.to_user_id == user_id)
+            .order_by(MessageNotification.message_datetime.desc())
         )
         messages = result.scalars().all()
         return messages

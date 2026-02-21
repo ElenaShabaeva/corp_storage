@@ -43,7 +43,7 @@ class InviteNotificationRepository:
         invite_notification = result.scalar_one_or_none()
         return invite_notification
 
-    async def get_by_user_id(self, to_user_id: UUID) -> Sequence[InviteNotification]:
+    async def get_all_by_user_id(self, to_user_id: UUID) -> Sequence[InviteNotification]:
         result = await self._db.execute(
             select(InviteNotification)
             .where(InviteNotification.to_user_id == to_user_id)
@@ -51,6 +51,7 @@ class InviteNotificationRepository:
                 selectinload(InviteNotification.project)
                 .selectinload(Project.creator)
             )
+            .order_by(InviteNotification.invite_datetime.desc())
         )
         invites = result.scalars().all()
         return invites

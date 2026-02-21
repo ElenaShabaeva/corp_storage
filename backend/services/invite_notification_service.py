@@ -3,7 +3,6 @@ from utils.jwt_utils import decode_jwt
 from jwt import ExpiredSignatureError, DecodeError
 from utils.uow import UnitOfWork
 from uuid import UUID
-from schemas.internal.invite_status_enum import InviteStatus
 from schemas.response.invite_notification_response import (
     InviteNotificationResponseSchema,
     InviteNotificationsResponseSchemas
@@ -24,7 +23,7 @@ class InviteNotificationService:
         try:
             user_id, _ = decode_jwt(token=access_token)
             async with self.uow.start():
-                invites = await self.uow.invite_notifications.get_by_user_id(to_user_id=user_id)
+                invites = await self.uow.invite_notifications.get_all_by_user_id(to_user_id=user_id)
 
                 return InviteNotificationsResponseSchemas(
                     count=len(invites),
