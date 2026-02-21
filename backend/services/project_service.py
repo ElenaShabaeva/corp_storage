@@ -187,6 +187,11 @@ class ProjectService:
 
             async with self.uow.start():
                 project = await self.uow.projects.get_by_id(project_id=payload.project_id)
+                if not project:
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail="Проект не найден"
+                    )
                 if project.creator_id != user_id:
                     raise HTTPException(
                         status_code=status.HTTP_403_FORBIDDEN,
