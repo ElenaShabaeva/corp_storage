@@ -14,8 +14,15 @@
         </div>
         <div class="header__nav-block">
           <ul class="header__links">
-            <li class="header__link">Уведомления</li>
-            <router-link class="link" to="/" @click.prevent="handleLogout">Выйти</router-link>
+            <div class="header__notifications">
+              <router-link class="link" to="/notification"
+                >Уведомления</router-link
+              >
+              <span v-if="notificationsStore.hasUnread"></span>
+            </div>
+            <router-link class="link" to="/" @click.prevent="handleLogout"
+              >Выйти</router-link
+            >
           </ul>
         </div>
       </nav>
@@ -27,14 +34,16 @@
 import { storeToRefs } from "pinia";
 import SvgLogo from "../assets/svg/SvgLogo.vue";
 import { useAuthStore } from "../store/auth";
+import { useNotificationsStore } from "../store/notifications";
 
-const store = useAuthStore()
-const { isLoggedIn } = storeToRefs(store)
+const store = useAuthStore();
+const notificationsStore = useNotificationsStore()
+const { isLoggedIn } = storeToRefs(store);
 
 async function handleLogout() {
   try {
-    await store.logout()
-  } catch(e) {}
+    await store.logout();
+  } catch (e) {}
 }
 </script>
 
@@ -93,6 +102,21 @@ async function handleLogout() {
   &__links {
     display: flex;
     column-gap: 32px;
+  }
+
+  &__notifications{
+    position: relative;
+
+    span{
+      position: absolute;
+      top: 3px;
+      right: -18px;
+      display: block;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background-color: @light-blue;
+    }
   }
 }
 </style>
