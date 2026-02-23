@@ -13,3 +13,4 @@ public_key.pem
 cert.key
 cert.crt
 *.orig
+storage/

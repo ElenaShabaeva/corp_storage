@@ -5,6 +5,7 @@ from repository.user_project_association_repository import UserProjectAssociatio
 from repository.refresh_token_repository import RefreshTokenRepository
 from repository.invite_notification_repository import InviteNotificationRepository
 from repository.message_notification_repository import MessageNotificationRepository
+from repository.document_repository import DocumentRepository
 from database.database import async_session
 
 
@@ -49,3 +50,7 @@ class UnitOfWork:
     @property
     def message_notifications(self) -> MessageNotificationRepository:
         return MessageNotificationRepository(db=self._session)
+
+    @property
+    def documents(self) -> DocumentRepository:
+        return DocumentRepository(db=self._session)
