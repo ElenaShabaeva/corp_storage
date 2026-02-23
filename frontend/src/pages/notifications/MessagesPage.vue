@@ -1,8 +1,8 @@
 <template>
   <div class="messages">
-    <MessagesSkeleton v-if="store.messagesLoading"/>
+    <MessagesSkeleton v-if="store.messagesLoading" />
     <div class="message__wrapper" v-else>
-      <p class="messages__none" v-if="store.notificationsMessages.length === 0">
+      <p class="none" v-if="store.notificationsMessages.length === 0">
         У вас сейчас нет сообщений
       </p>
       <div class="messages__body" v-else>
@@ -17,7 +17,7 @@
           <my-button
             type="button"
             @click="handleDeleteAll"
-            :disabled="!store.notificationsMessages.some(m => m.is_read)"
+            :disabled="!store.notificationsMessages.some((m) => m.is_read)"
             >Удалить все</my-button
           >
         </div>
@@ -31,7 +31,7 @@
       </div>
     </div>
   </div>
-  <DeleteAllMesages v-if="store.showAllMessagesDeleteModal"/>
+  <DeleteAllMesages v-if="store.showAllMessagesDeleteModal" />
 </template>
 
 <script setup>
@@ -50,7 +50,7 @@ async function handleReadAll() {
 }
 
 async function handleDeleteAll() {
-  await store.openAllMessagesDeleteModal()
+  await store.openAllMessagesDeleteModal();
 }
 
 watch(
@@ -70,13 +70,6 @@ onMounted(async () => {
 
 <style lang="less">
 .messages {
-  &__none {
-    text-align: center;
-    font-size: 18px;
-    font-weight: 700;
-    color: @text-tertiary;
-  }
-
   &__body {
     display: flex;
     flex-direction: column;
