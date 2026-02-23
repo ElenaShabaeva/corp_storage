@@ -45,6 +45,11 @@ const router = createRouter({
           name: "members",
           component: () => import("@/pages/project/MembersPage.vue"),
         },
+        {
+          path: "documents",
+          name: "documents",
+          component: () => import("@/pages/project/DocumentsPage.vue"),
+        },
       ],
     },
     {
@@ -72,32 +77,32 @@ const router = createRouter({
   ],
 });
 
-router.beforeEach((to, from, next) => {
-  const authStore = useAuthStore();
-  const profileStore = useProfileStore()
-  const projectsStore = useProjectsStore()
+// router.beforeEach((to, from, next) => {
+//   const authStore = useAuthStore();
+//   const profileStore = useProfileStore()
+//   const projectsStore = useProjectsStore()
 
-  authStore.serverError = ''
-  profileStore.serverError = ''
-  projectsStore.serverError = ''
+//   authStore.serverError = ''
+//   profileStore.serverError = ''
+//   projectsStore.serverError = ''
 
-  profileStore.success = ''
-  projectsStore.success = ''
+//   profileStore.success = ''
+//   projectsStore.success = ''
 
-  if (to.meta.requiresAuth && !authStore.token) {
-    next({
-      name: "login",
-      query: { redirect: to.fullPath },
-    });
-    return;
-  }
+//   if (to.meta.requiresAuth && !authStore.token) {
+//     next({
+//       name: "login",
+//       query: { redirect: to.fullPath },
+//     });
+//     return;
+//   }
 
-  if (authStore.token && (to.name === "login" || to.name === "registration")) {
-    next({ name: "projects" });
-    return;
-  }
+//   if (authStore.token && (to.name === "login" || to.name === "registration")) {
+//     next({ name: "projects" });
+//     return;
+//   }
 
-  next();
-});
+//   next();
+// });
 
 export default router;

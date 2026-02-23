@@ -40,3 +40,4 @@ class User(Base):
         back_populates="to_user",
         cascade="all, delete-orphan"
     )
+    created_documents = relationship("Document", back_populates="creator")

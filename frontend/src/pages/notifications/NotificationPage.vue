@@ -1,7 +1,6 @@
 <template>
   <div class="notification">
-    <MemberSkeleton v-if="isLoading" />
-    <div class="notification__wrapper" v-else>
+    <div class="notification__wrapper">
       <div class="notification__top">
         <h1 class="title">Уведомления</h1>
         <nav class="notification__nav">

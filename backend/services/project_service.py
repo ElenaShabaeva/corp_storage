@@ -5,6 +5,8 @@ from utils.uow import UnitOfWork
 from uuid import UUID
 from datetime import datetime
 from services.notification_service import notification_service
+import shutil
+from pathlib import Path
 from schemas.request.project_request import (
     ProjectCreateRequestSchema,
     InviteKickUserRequestSchema
@@ -421,6 +423,8 @@ class ProjectService:
                                 date_time=date_time.strftime("%d.%m.%Y / %H:%M")
                             )
                         )
+                    project_folder_path = Path(f"storage/documents/{project.id}")
+                    shutil.rmtree(project_folder_path, ignore_errors=True)
                     await self.uow.projects.delete(project_id=project_id)
 
             return MessageResponseSchema(

@@ -13,6 +13,9 @@
           <router-link :to="`/project/${route.params.id}/members`" class="link">
             Участники
           </router-link>
+          <router-link :to="`/project/${route.params.id}/documents`" class="link">
+            Документы
+          </router-link>
           <my-text-button v-if="store.projectOwner">Изменить название / описание</my-text-button>
         </nav>
       </div>
@@ -107,5 +110,22 @@ onMounted(async () => {
       margin-left: auto;
     }
   }
+}
+
+.modal-move,
+.modal-enter-active,
+.modal-leave-active {
+  transition: all 0.4s ease;
+}
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+  transform: translateY(-92px);
+}
+
+.modal-enter-to,
+.modal-leave-from {
+  opacity: 1;
+  transform: translateY(0);
 }
 </style>

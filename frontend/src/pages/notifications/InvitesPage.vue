@@ -1,8 +1,8 @@
 <template>
   <div class="invites">
-    <InvitesSkeleton v-if="store.invitesLoading"/>
+    <InvitesSkeleton v-if="store.invitesLoading" />
     <div class="invites__wrapper" v-else>
-      <p class="invites__none" v-if="store.notificationsInvites.length === 0">
+      <p class="none" v-if="store.notificationsInvites.length === 0">
         У вас сейчас нет приглашений
       </p>
       <div class="invites__body">
@@ -10,7 +10,9 @@
           type="button"
           @click="handleDeleteAll"
           v-if="store.notificationsInvites.length > 0"
-          :disabled="!store.notificationsInvites.some(i => i.state !== 'Отправлено')"
+          :disabled="
+            !store.notificationsInvites.some((i) => i.state !== 'Отправлено')
+          "
           >Удалить все</my-button
         >
         <ul class="invites__list">
@@ -23,7 +25,7 @@
       </div>
     </div>
   </div>
-  <DeleteAllInvites v-if="store.showAllInvitesDeleteModal"/>
+  <DeleteAllInvites v-if="store.showAllInvitesDeleteModal" />
 </template>
 
 <script setup>
@@ -36,7 +38,7 @@ import DeleteAllInvites from "../../components/DeleteAllInvites.vue";
 const store = useNotificationsStore();
 
 async function handleDeleteAll() {
-  await store.openAllInvitesDeleteModal()
+  await store.openAllInvitesDeleteModal();
 }
 
 watch(
@@ -56,13 +58,6 @@ onMounted(async () => {
 
 <style lang="less">
 .invites {
-  &__none {
-    text-align: center;
-    font-size: 18px;
-    font-weight: 700;
-    color: @text-tertiary;
-  }
-
   &__body {
     display: flex;
     flex-direction: column;
