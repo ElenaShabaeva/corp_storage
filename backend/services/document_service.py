@@ -11,6 +11,7 @@ from schemas.response.document_response import (
     DocumentShortResponseSchema,
     DocumentsResponseSchema
 )
+from schemas.response.standart_message import MessageResponseSchema
 
 
 class DocumentService:
@@ -106,6 +107,52 @@ class DocumentService:
                     can_delete=document.creator_id == user_id
                 ) for document in documents]
             )
+        except ExpiredSignatureError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Access token истек"
+            )
+        except DecodeError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Неверный формат токена"
+            )
+
+    async def delete(self, access_token: str | None, project_id: UUID, document_id: UUID) -> MessageResponseSchema:
+        if not access_token:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Access token не найден"
+            )
+        try:
+            user_id, _ = decode_jwt(token=access_token)
+            async with self.uow.start():
+                document = await self.uow.documents.get_by_id(document_id=document_id)
+                if not document:
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail="Документ не найден"
+                    )
+                project = await self.uow.projects.get_by_id(project_id=project_id)
+                if document.creator_id != user_id and project.creator_id != user_id:
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        detail="Нет прав"
+                    )
+                file_path = Path(document.file_path)
+                try:
+                    file_path.unlink()
+                except OSError:
+                    raise HTTPException(
+                        status_code=status.HTTP_409_CONFLICT,
+                        detail="Ошибка при удалении файла"
+                    )
+                rowcount = await self.uow.documents.delete(document_id=document_id)
+
+                return MessageResponseSchema(
+                    status="success",
+                    message=f"Удалено файлов: {rowcount}"
+                )
         except ExpiredSignatureError:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,

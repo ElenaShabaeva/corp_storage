@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.orm import selectinload
 from models.document import Document
 from uuid import UUID
@@ -40,3 +40,20 @@ class DocumentRepository:
 
         documents = result.scalars().all()
         return documents
+
+    async def get_by_id(self, document_id: UUID) -> Document | None:
+        result = await self._db.execute(
+            select(Document)
+            .where(Document.id == document_id)
+        )
+
+        document = result.scalar_one_or_none()
+        return document
+
+    async def delete(self, document_id: UUID) -> int:
+        result = await self._db.execute(
+            delete(Document)
+            .where(Document.id == document_id)
+        )
+
+        return result.rowcount
