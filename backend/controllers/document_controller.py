@@ -5,7 +5,7 @@ from services.document_service import DocumentService
 from uuid import UUID
 from schemas.response.document_response import (
     DocumentResponseSchema,
-    DocumentShortResponseSchema,
+    DocumentResponseSchema,
     DocumentsResponseSchema
 )
 from schemas.response.standart_message import MessageResponseSchema
@@ -17,7 +17,7 @@ router = APIRouter(
 )
 
 
-@router.post("/{project_id}/documents/{file_name}", response_model=DocumentResponseSchema)
+@router.post("/{project_id}/documents", response_model=DocumentResponseSchema)
 async def create_document(
         project_id: UUID,
         file_name: str,
@@ -40,7 +40,7 @@ async def get_all(
     return await document_service.get_all(project_id=project_id, access_token=credentials.credentials)
 
 
-@router.delete("/{project_id}/documents/{document_id}", response_model=MessageResponseSchema)
+@router.delete("/{project_id}/documents", response_model=MessageResponseSchema)
 async def delete(
         project_id: UUID,
         document_id: UUID,

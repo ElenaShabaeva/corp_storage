@@ -8,7 +8,6 @@ from docx import Document
 from datetime import datetime
 from schemas.response.document_response import (
     DocumentResponseSchema,
-    DocumentShortResponseSchema,
     DocumentsResponseSchema
 )
 from schemas.response.standart_message import MessageResponseSchema
@@ -69,10 +68,9 @@ class DocumentService:
                 )
             return DocumentResponseSchema(
                 id=document_db.id,
-                file_path=str(document_db.file_path),
-                project_id=document_db.project_id,
-                creator_id=document_db.creator_id,
-                created_at=document_db.created_at.strftime("%d.%m.%Y / %H:%M")
+                name=Path(document_db.file_path).name,
+                creator=user.login,
+                can_delete=True
             )
 
         except ExpiredSignatureError:
@@ -97,14 +95,15 @@ class DocumentService:
 
             async with self.uow.start():
                 documents = await self.uow.documents.get_all(project_id=project_id)
+                project = await self.uow.projects.get_by_id(project_id=project_id)
 
             return DocumentsResponseSchema(
                 count=len(documents),
-                documents=[DocumentShortResponseSchema(
+                documents=[DocumentResponseSchema(
                     id=document.id,
                     name=Path(document.file_path).name,
                     creator=document.creator.login,
-                    can_delete=document.creator_id == user_id
+                    can_delete=document.creator_id == user_id or project.creator_id == user_id
                 ) for document in documents]
             )
         except ExpiredSignatureError:
