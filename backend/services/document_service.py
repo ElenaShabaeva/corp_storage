@@ -33,6 +33,11 @@ class DocumentService:
                     )
 
                 project = await self.uow.projects.get_by_id(project_id=project_id)
+                if not project:
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail="Проект не найден"
+                    )
                 new_document = Document()
                 filename = f"{uuid4()}.docx"
                 file_path = Path("storage/documents") / str(project.id) / filename
