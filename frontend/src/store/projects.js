@@ -6,12 +6,15 @@ export const useProjectsStore = defineStore("projects", () => {
   const projects = ref(null);
   const projectInfo = ref(null);
   const projectMembers = ref(null);
+  const projectDocuments = ref([]);
   const projectOwner = ref(false);
 
   const showCreateModal = ref(false);
   const showInviteModal = ref(false);
   const showLeaveModal = ref(false);
   const showKickModal = ref(false);
+  const showDeleteDocumentModal = ref(false);
+  const showCreateDocumentModal = ref(false);
   const initialLoading = ref(false);
   const createLoading = ref(false);
   const infoLoading = ref(false);
@@ -19,11 +22,14 @@ export const useProjectsStore = defineStore("projects", () => {
   const inviteLoading = ref(false);
   const leaveLoading = ref(false);
   const kickLoading = ref(false);
+  const createDocumentLoading =  ref(false);
+  const documentsLoading = ref(false);
   const serverError = ref("");
   const success = ref("");
 
   const currentProject = ref(null);
   const currentMember = ref(null);
+  const currentDocument = ref(null);
 
   const savedProjects = () => {
     try {
@@ -176,7 +182,7 @@ export const useProjectsStore = defineStore("projects", () => {
       setTimeout(() => (serverError.value = ""), 4000);
     } finally {
       leaveLoading.value = false;
-      currentProject.value = null
+      currentProject.value = null;
     }
   }
 
@@ -186,7 +192,7 @@ export const useProjectsStore = defineStore("projects", () => {
       kickLoading.value = true;
       serverError.value = "";
 
-      const data = await api.request('/project/kick', {
+      const data = await api.request("/project/kick", {
         method: "POST",
         body: JSON.stringify({
           login: currentMember.value,
@@ -203,7 +209,75 @@ export const useProjectsStore = defineStore("projects", () => {
       setTimeout(() => (serverError.value = ""), 4000);
     } finally {
       kickLoading.value = false;
-      currentMember.value = null
+      currentMember.value = null;
+    }
+  }
+
+  async function getDocuments(id) {
+    try {
+      documentsLoading.value = true;
+      const data = await api.request(`/project/${id}/documents/all`);
+      projectDocuments.value = data.documents;
+
+    } catch (e) {
+      serverError.value = "Не удалось загрузить документы"
+      setTimeout(() => (serverError.value = ""), 4000);
+    } finally {
+      documentsLoading.value = false;
+    }
+  }
+
+  async function createDocument(id, name) {
+    try {
+      createDocumentLoading.value = true
+      showCreateDocumentModal.value = false
+      const data = await api.request(
+        `/project/${id}/documents?file_name=${name}`,
+        {
+          method: "POST",
+        },
+      );
+
+      projectDocuments.value = [
+        data,
+        ...projectDocuments.value
+      ]
+
+    } catch (e) {
+      if (e.message?.includes("409") || e.status === 409) {
+        serverError.value = 'Такой документ есть или с таким названием нельзя создать документ';
+      } else {
+        serverError.value = 'Не удалось создать документ';
+      }
+      setTimeout(() => (serverError.value = ""), 4000);
+    } finally {
+      currentDocument.value = null;
+      createDocumentLoading.value = false
+    }
+  }
+
+  async function deleteDocument(id) {
+    try {
+      showDeleteDocumentModal.value = false;
+      const data = await api.request(
+        `/project/${id}/documents?document_id=${currentDocument.value}`,
+        {
+          method: "DELETE",
+        },
+      );
+
+      projectDocuments.value = projectDocuments.value.filter(
+        (d) => d.id !== currentDocument.value,
+      );
+    } catch (e) {
+      if (e.message?.includes("403") || e.status === 403) {
+        serverError.value = 'Вы не можете удалить документ';
+      } else {
+        serverError.value = 'Не удалось удалить документ';
+      } 
+      setTimeout(() => (serverError.value = ""), 4000);
+    } finally {
+      currentDocument.value = null;
     }
   }
 
@@ -239,15 +313,34 @@ export const useProjectsStore = defineStore("projects", () => {
     showKickModal.value = false;
   }
 
+  function openShowDeleteDocumentModal(id) {
+    showDeleteDocumentModal.value = true;
+    currentDocument.value = id;
+  }
+  function closeShowDeleteDocumentModal() {
+    showDeleteDocumentModal.value = false;
+    currentDocument.value = null;
+  }
+
+  function openCreateDocumentModal() {
+    showCreateDocumentModal.value = true
+  }
+  function closeCreateDocumentModal() {
+    showCreateDocumentModal.value = false
+  }
+
   return {
     projects,
     projectInfo,
     projectOwner,
     projectMembers,
+    projectDocuments,
     showCreateModal,
     showInviteModal,
     showLeaveModal,
     showKickModal,
+    showCreateDocumentModal,
+    showDeleteDocumentModal,
     initialLoading,
     createLoading,
     infoLoading,
@@ -255,6 +348,8 @@ export const useProjectsStore = defineStore("projects", () => {
     inviteLoading,
     leaveLoading,
     kickLoading,
+    createDocumentLoading,
+    documentsLoading,
     serverError,
     success,
     getProjects,
@@ -264,6 +359,9 @@ export const useProjectsStore = defineStore("projects", () => {
     inviteMember,
     leaveProject,
     kickProject,
+    getDocuments,
+    createDocument,
+    deleteDocument,
     openCreateModal,
     closeCreateModal,
     openInviteModal,
@@ -272,6 +370,10 @@ export const useProjectsStore = defineStore("projects", () => {
     closeLeaveModal,
     openKickModal,
     closeKickModal,
-    currentMember
+    openCreateDocumentModal,
+    closeCreateDocumentModal,
+    openShowDeleteDocumentModal,
+    closeShowDeleteDocumentModal,
+    currentMember,
   };
 });
