@@ -8,3 +8,15 @@ class DocumentResponseSchema(BaseModel):
     project_id: UUID
     creator_id: UUID
     created_at: str
+
+
+class DocumentShortResponseSchema(BaseModel):
+    id: UUID
+    name: str
+    creator: str
+    can_delete: bool
+
+
+class DocumentsResponseSchema(BaseModel):
+    count: int
+    documents: list[DocumentShortResponseSchema]

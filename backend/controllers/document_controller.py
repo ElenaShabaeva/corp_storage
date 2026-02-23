@@ -3,6 +3,7 @@ from fastapi.security import HTTPAuthorizationCredentials
 from configuration import settings
 from services.document_service import DocumentService
 from uuid import UUID
+from schemas.response.document_response import DocumentResponseSchema
 
 
 router = APIRouter(
@@ -11,10 +12,24 @@ router = APIRouter(
 )
 
 
-@router.post("/{project_id}/documents")
+@router.post("/{project_id}/documents/{file_name}", response_model=DocumentResponseSchema)
 async def create_document(
+        project_id: UUID,
+        file_name: str,
+        credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
+        document_service: DocumentService = Depends(DocumentService)
+):
+    return await document_service.create_document(
+        project_id=project_id,
+        access_token=credentials.credentials,
+        filename=file_name
+    )
+
+
+@router.get("{project_id}/documents/all")
+async def get_all(
         project_id: UUID,
         credentials: HTTPAuthorizationCredentials = Depends(settings.http_bearer),
         document_service: DocumentService = Depends(DocumentService)
 ):
-    return await document_service.create_document(project_id=project_id, access_token=credentials.credentials)
+    return await document_service.get_all(project_id=project_id, access_token=credentials.credentials)

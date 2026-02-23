@@ -6,14 +6,18 @@ from jwt import ExpiredSignatureError, DecodeError
 from pathlib import Path
 from docx import Document
 from datetime import datetime
-from schemas.response.document_response import DocumentResponseSchema
+from schemas.response.document_response import (
+    DocumentResponseSchema,
+    DocumentShortResponseSchema,
+    DocumentsResponseSchema
+)
 
 
 class DocumentService:
     def __init__(self):
         self.uow: UnitOfWork = UnitOfWork()
 
-    async def create_document(self, access_token: str | None, project_id: UUID):
+    async def create_document(self, access_token: str | None, project_id: UUID, filename: str) -> DocumentResponseSchema:
         if not access_token:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -38,11 +42,22 @@ class DocumentService:
                         status_code=status.HTTP_404_NOT_FOUND,
                         detail="Проект не найден"
                     )
-                new_document = Document()
-                filename = f"{uuid4()}.docx"
+                filename = f"{filename}.docx"
                 file_path = Path("storage/documents") / str(project.id) / filename
+                if file_path.exists():
+                    raise HTTPException(
+                        status_code=status.HTTP_409_CONFLICT,
+                        detail="Файл с таким названием уже существует"
+                    )
                 file_path.parent.mkdir(parents=True, exist_ok=True)
-                new_document.save(str(file_path))
+                new_document = Document()
+                try:
+                    new_document.save(str(file_path))
+                except OSError:
+                    raise HTTPException(
+                        status_code=status.HTTP_409_CONFLICT,
+                        detail="Нельзя создать файл с таким названием"
+                    )
                 created_at = datetime.now()
 
                 document_db = await self.uow.documents.post(
@@ -59,6 +74,38 @@ class DocumentService:
                 created_at=document_db.created_at.strftime("%d.%m.%Y / %H:%M")
             )
 
+        except ExpiredSignatureError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Access token истек"
+            )
+        except DecodeError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Неверный формат токена"
+            )
+
+    async def get_all(self, project_id: UUID, access_token: str | None) -> DocumentsResponseSchema:
+        if not access_token:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Access token не найден"
+            )
+        try:
+            user_id, _ = decode_jwt(token=access_token)
+
+            async with self.uow.start():
+                documents = await self.uow.documents.get_all(project_id=project_id)
+
+            return DocumentsResponseSchema(
+                count=len(documents),
+                documents=[DocumentShortResponseSchema(
+                    id=document.id,
+                    name=Path(document.file_path).name,
+                    creator=document.creator.login,
+                    can_delete=document.creator_id == user_id
+                ) for document in documents]
+            )
         except ExpiredSignatureError:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
