@@ -1,4 +1,4 @@
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, WebSocket
 from utils.uow import UnitOfWork
 from uuid import UUID, uuid4
 from utils.jwt_utils import decode_jwt
@@ -11,6 +11,7 @@ from schemas.response.document_response import (
     DocumentsResponseSchema
 )
 from schemas.response.standart_message import MessageResponseSchema
+from utils.document_websocket import document_connection_manager
 
 
 class DocumentService:
@@ -152,6 +153,37 @@ class DocumentService:
                     status="success",
                     message=f"Удалено файлов: {rowcount}"
                 )
+        except ExpiredSignatureError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Access token истек"
+            )
+        except DecodeError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Неверный формат токена"
+            )
+
+    async def connect(self, access_token: str | None, document_id: UUID, websocket: WebSocket):
+        if not access_token:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Access token не найден"
+            )
+        try:
+            user_id, _ = decode_jwt(token=access_token)
+            async with self.uow.start():
+                document = await self.uow.documents.get_by_id(document_id=document_id)
+                members = await self.uow.projects.get_members(project_id=document.project_id)
+
+                if user_id not in [member.id for member in members]:
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        detail="Нет прав"
+                    )
+
+            await document_connection_manager.connect(document_id=document_id, websocket=websocket)
+
         except ExpiredSignatureError:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
