@@ -14,6 +14,8 @@ export const useDocumentStore = defineStore("document", () => {
   const isConnected = ref(false);
   const awarenessStates = ref([]);
 
+  const isLoading = ref(false);
+
   const generateUserColor = (name) => {
     const seed = name || "user";
     let hash = 0;
@@ -30,37 +32,49 @@ export const useDocumentStore = defineStore("document", () => {
       return;
     }
 
+    isLoading.value = true;
+
     currentDocId.value = docId;
 
     ydoc.value = new Y.Doc();
     ytext.value = ydoc.value.getText("quill");
 
-    const username = localStorage.getItem("username") || "Неизвестный пользователь";
+    const username =
+      localStorage.getItem("username") || "Неизвестный пользователь";
 
     provider.value = new HocuspocusProvider({
       url: url,
       name: docId,
       document: ydoc.value,
       token: token,
-      
+
       onConnect: () => {
         isConnected.value = true;
         console.log("Подключено к документу:", docId);
-        
+
         provider.value.awareness.setLocalState({
           name: username,
           color: generateUserColor(username),
         });
+
+        nextTick(() => {
+          isLoading.value = false;
+        });
       },
-      
+
       onDisconnect: () => {
         isConnected.value = false;
         console.log("Отключено от документа");
       },
-      
+
       onAwarenessUpdate: () => {
         updateAwarenessStates();
-      }
+      },
+
+      onError: (error) => {
+        console.error("Ошибка подключения:", error);
+        isLoading.value = false;
+      },
     });
 
     const updateAwarenessStates = () => {
@@ -89,6 +103,7 @@ export const useDocumentStore = defineStore("document", () => {
     ytext.value = null;
     isConnected.value = false;
     awarenessStates.value = [];
+    isLoading.value = false;
   };
 
   const visibleUsers = computed(() => {
@@ -118,6 +133,7 @@ export const useDocumentStore = defineStore("document", () => {
     visibleUsers,
     awarenessStates,
     hiddenUsersCount,
+    isLoading,
     getUserInitials,
     connect,
     disconnect,
