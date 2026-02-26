@@ -15,23 +15,23 @@
           <my-text-button :color="true">Экспорт</my-text-button>
           <div class="editor__users">
             <div
-              v-for="user in visibleUsers"
-              :key="user.name"
+              v-for="user in store.visibleUsers"
+              :key="user.clientId"
               class="editor__user"
               :style="{ backgroundColor: user.color }"
               :title="user.name || 'Неизвестный пользователь'"
             >
               <span class="editor__user-initials">
-                {{ getUserInitials(user.name) }}
+                {{ store.getUserInitials(user.name) }}
               </span>
             </div>
 
             <div
-              v-if="hiddenUsersCount > 0"
+              v-if="store.hiddenUsersCount > 0"
               class="editor__others"
-              :title="`+${hiddenUsersCount} других пользователей`"
+              :title="`+${store.hiddenUsersCount} других пользователей`"
             >
-              <span class="editor__others-count">+{{ hiddenUsersCount }}</span>
+              <span class="editor__others-count">+{{ store.hiddenUsersCount }}</span>
             </div>
           </div>
         </div>
@@ -41,36 +41,20 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
+import { useDocumentStore } from '../../store/documents'
 
+const store = useDocumentStore()
 const route = useRoute()
 
-const allVisibleUsers = ref([
-  { id: 1, name: 'Елена Шабаева', color: '#ff6b6b' },
-  { id: 2, name: 'Иван Петров', color: '#4ecdc4' },
-  { id: 3, name: 'Мария Сидорова', color: '#45b7d1' },
-  { id: 4, name: 'Алексей Иванов', color: '#96ceb4' },
-  { id: 5, name: 'Анна Козлова', color: '#feca57' },
-  { id: 6, name: 'Дмитрий Смирнов', color: '#ff9ff3' },
-  { id: 7, name: 'Ольга Васильева', color: '#54a0ff' }
-])
+onMounted(async () => {
+  await store.connect(route.params.id)
+})
 
-const visibleUsers = computed(() => allVisibleUsers.value.slice(0, 5))
-
-const hiddenUsersCount = computed(() => 
-  allVisibleUsers.value.length - 5
-)
-
-const getUserInitials = (name) => {
-  if (!name) return '?'
-  return name
-    .split(' ')
-    .slice(0, 2)
-    .map(word => word[0])
-    .join('')
-    .toUpperCase()
-}
+onUnmounted(() => {
+  store.disconnect()
+})
 </script>
 
 <style lang="less">
