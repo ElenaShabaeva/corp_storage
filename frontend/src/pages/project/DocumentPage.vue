@@ -1,10 +1,11 @@
 <template>
   <div class="editor">
-    <div class="editor__wrapper">
+    <document-skeleton v-if="store.isLoading"/>
+    <div class="editor__wrapper" v-else>
       <h1 class="title">{{ route.params.name }}</h1>
       <div class="editor__body">
         <div class="editor__field">
-          <div ref="editorContainer" class="editor__quill" style="height: 490px;"></div>
+          <div v-if="!store.isLoading" ref="editorContainer" class="editor__quill" style="height: 490px;"></div>
         </div>
 
         <div class="editor__block">
@@ -37,11 +38,12 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, ref, nextTick } from "vue";
+import { onMounted, onUnmounted, ref, nextTick, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useDocumentStore } from "../../store/documents";
 import Quill from "quill";
 import "quill/dist/quill.snow.css";
+import DocumentSkeleton from "../../components/skeleton/DocumentSkeleton.vue";
 
 const store = useDocumentStore();
 const route = useRoute();
@@ -50,126 +52,143 @@ let quill = null;
 let isFromYjs = false;
 let isFromQuill = false;
 
-const deltaToText = (delta) => {
-  let text = '';
-  delta.ops.forEach(op => {
-    if (typeof op.insert === 'string') {
-      text += op.insert;
+const initQuill = async () => {
+  await nextTick();
+  await nextTick(); 
+  
+  if (!editorContainer.value) {
+    console.error("Контейнер редактора не найден");
+    return;
+  }
+
+  if (quill) {
+    quill = null;
+  }
+
+  editorContainer.value.innerHTML = '';
+
+  try {
+    quill = new Quill(editorContainer.value, {
+      theme: "snow",
+      modules: {
+        toolbar: [
+          [{ header: [1, 2, 3, 4, 5, 6, false] }],
+          ["bold", "italic", "underline", "strike"],
+          [{ color: [] }, { background: [] }],
+          [],
+          ["blockquote"],
+          [{ list: "ordered" }, { list: "bullet" }],
+          [{ indent: "-1" }, { indent: "+1" }],
+          [{ align: [] }],
+          ["link"],
+          ["clean"]
+        ]
+      },
+    });
+
+    if (store.ytext && store.ytext.length > 0) {
+      try {
+        const savedDelta = JSON.parse(store.ytext.toString());
+        if (savedDelta.ops) {
+          quill.setContents(savedDelta);
+        } else {
+          quill.setText(store.ytext.toString());
+        }
+      } catch {
+        quill.setText(store.ytext.toString());
+      }
     }
-  });
-  return text.replace(/\n$/, '');
+
+    const yObserver = () => {
+      if (isFromQuill || !quill) return;
+      
+      isFromYjs = true;
+      
+      const selection = quill.getSelection();
+      const yContent = store.ytext.toString();
+      
+      try {
+        const yDelta = JSON.parse(yContent);
+        if (yDelta && yDelta.ops) {
+          quill.setContents(yDelta);
+        } else {
+          quill.setText(yContent);
+        }
+      } catch {
+        quill.setText(yContent);
+      }
+
+      nextTick(() => {
+        if (selection && quill.hasFocus()) {
+          const length = quill.getLength();
+          const newPos = Math.min(selection.index, length - 1);
+          quill.setSelection(newPos, 0);
+        }
+      });
+      
+      isFromYjs = false;
+    };
+    
+    store.ytext.observe(yObserver);
+
+    quill.on('text-change', (delta, oldDelta, source) => {
+      if (source === 'user' && !isFromYjs) {
+        isFromQuill = true;
+        
+        const currentDelta = quill.getContents();
+        const deltaJson = JSON.stringify(currentDelta);
+        
+        store.ydoc.transact(() => {
+          store.ytext.delete(0, store.ytext.length);
+          store.ytext.insert(0, deltaJson);
+        }, 'local');
+        
+        isFromQuill = false;
+      }
+    });
+
+    quill.on('selection-change', (range) => {
+      if (!range && !isFromYjs && !isFromQuill && quill) {
+        const currentDelta = quill.getContents();
+        const deltaJson = JSON.stringify(currentDelta);
+        
+        store.ydoc.transact(() => {
+          store.ytext.delete(0, store.ytext.length);
+          store.ytext.insert(0, deltaJson);
+        }, 'local');
+      }
+    });
+
+  } catch (error) {
+    console.error("Ошибка инициализации Quill:", error);
+  }
 };
+
+watch(() => store.isLoading, (newValue) => {
+  if (!newValue) {
+    initQuill();
+  }
+});
 
 onMounted(async () => {
   await store.connect(route.params.id);
-  
-  quill = new Quill(editorContainer.value, {
-    theme: "snow",
-    modules: {
-      toolbar: [
-        [{ header: [1, 2, 3, 4, 5, 6, false] }],
-        ["bold", "italic", "underline", "strike"],
-        [{ color: [] }, { background: [] }],
-        [],
-        ["blockquote"],
-        [{ list: "ordered" }, { list: "bullet" }],
-        [{ indent: "-1" }, { indent: "+1" }],
-        [{ align: [] }],
-        ["link",],
-        ["clean"]
-      ]
-    },
-    placeholder: "Начните печатать..."
-  });
-
-  await nextTick();
-
-  if (store.ytext.length > 0) {
-    try {
-      const savedDelta = JSON.parse(store.ytext.toString());
-      if (savedDelta.ops) {
-        quill.setContents(savedDelta);
-      } else {
-        quill.setText(store.ytext.toString());
-      }
-    } catch {
-      quill.setText(store.ytext.toString());
-    }
-  }
-
-  const yObserver = () => {
-    if (isFromQuill) return;
-    
-    isFromYjs = true;
-    
-    const selection = quill.getSelection();
-    const yContent = store.ytext.toString();
-    
-    try {
-      const yDelta = JSON.parse(yContent);
-      if (yDelta.ops) {
-        quill.setContents(yDelta);
-      } else {
-        quill.setText(yContent);
-      }
-    } catch {
-      quill.setText(yContent);
-    }
-
-    nextTick(() => {
-      if (selection && quill.hasFocus()) {
-        const length = quill.getLength();
-        const newPos = Math.min(selection.index, length - 1);
-        quill.setSelection(newPos, 0);
-      }
-    });
-    
-    isFromYjs = false;
-  };
-  
-  store.ytext.observe(yObserver);
-
-  quill.on('text-change', (delta, oldDelta, source) => {
-    if (source === 'user' && !isFromYjs) {
-      isFromQuill = true;
-      
-      const currentDelta = quill.getContents();
-      
-      const deltaJson = JSON.stringify(currentDelta);
-      
-      store.ydoc.transact(() => {
-        store.ytext.delete(0, store.ytext.length);
-        store.ytext.insert(0, deltaJson);
-      }, 'local');
-      
-      const plainText = deltaToText(currentDelta);
-      
-      isFromQuill = false;
-    }
-  });
-
-  quill.on('selection-change', (range) => {
-    if (!range && !isFromYjs && !isFromQuill) {
-      const currentDelta = quill.getContents();
-      const deltaJson = JSON.stringify(currentDelta);
-      
-      store.ydoc.transact(() => {
-        store.ytext.delete(0, store.ytext.length);
-        store.ytext.insert(0, deltaJson);
-      }, 'local');
-    }
-  });
 });
 
 onUnmounted(() => {
   if (quill) {
-    const currentDelta = quill.getContents();
-    const deltaJson = JSON.stringify(currentDelta);
-    
-    store.ydoc.transact(() => {
-      store.ytext.delete(0, store.ytext.length);
-      store.ytext.insert(0, deltaJson);
-    }, 'local');
+    try {
+      const currentDelta = quill.getContents();
+      const deltaJson = JSON.stringify(currentDelta);
+      
+      if (store.ydoc) {
+        store.ydoc.transact(() => {
+          store.ytext.delete(0, store.ytext.length);
+          store.ytext.insert(0, deltaJson);
+        }, 'local');
+      }
+    } catch (e) {
+      console.error("Ошибка при сохранении:", e);
+    }
     
     quill = null;
   }
@@ -183,9 +202,14 @@ onUnmounted(() => {
 
 .editor {
   width: 100%;
+  max-width: 1400px;
   width: 1400px;
   margin-left: -220px;
   margin-top: -50px;
+
+  &__wrapper {
+    width: 100%;
+  }
 
   &__body {
     display: flex;
@@ -248,7 +272,7 @@ onUnmounted(() => {
   &__user-initials {
     font-size: 12px;
     font-weight: 600;
-    color: @white;
+    color: white;
     text-shadow: 0 1px 2px rgba(0,0,0,0.3);
   }
 
