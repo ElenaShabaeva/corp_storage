@@ -53,56 +53,61 @@ const router = createRouter({
       ],
     },
     {
+      path: "/document/:id/:name",
+      name: "document",
+      component: () => import("@/pages/project/DocumentPage.vue"),
+    },
+    {
       path: "/notification",
       name: "notification",
       component: () => import("@/pages/notifications/NotificationPage.vue"),
-      meta: {requiresAuth: true},
+      meta: { requiresAuth: true },
       children: [
         {
           path: "",
-          redirect: {name: 'messages'}
+          redirect: { name: "messages" },
         },
         {
           path: "messages",
           name: "messages",
-          component: () => import("@/pages/notifications/MessagesPage.vue")
+          component: () => import("@/pages/notifications/MessagesPage.vue"),
         },
         {
           path: "invites",
           name: "invites",
-          component: () => import("@/pages/notifications/InvitesPage.vue")
-        }
-      ]
-    }
+          component: () => import("@/pages/notifications/InvitesPage.vue"),
+        },
+      ],
+    },
   ],
 });
 
-// router.beforeEach((to, from, next) => {
-//   const authStore = useAuthStore();
-//   const profileStore = useProfileStore()
-//   const projectsStore = useProjectsStore()
+router.beforeEach((to, from, next) => {
+  const authStore = useAuthStore();
+  const profileStore = useProfileStore()
+  const projectsStore = useProjectsStore()
 
-//   authStore.serverError = ''
-//   profileStore.serverError = ''
-//   projectsStore.serverError = ''
+  authStore.serverError = ''
+  profileStore.serverError = ''
+  projectsStore.serverError = ''
 
-//   profileStore.success = ''
-//   projectsStore.success = ''
+  profileStore.success = ''
+  projectsStore.success = ''
 
-//   if (to.meta.requiresAuth && !authStore.token) {
-//     next({
-//       name: "login",
-//       query: { redirect: to.fullPath },
-//     });
-//     return;
-//   }
+  if (to.meta.requiresAuth && !authStore.token) {
+    next({
+      name: "login",
+      query: { redirect: to.fullPath },
+    });
+    return;
+  }
 
-//   if (authStore.token && (to.name === "login" || to.name === "registration")) {
-//     next({ name: "projects" });
-//     return;
-//   }
+  if (authStore.token && (to.name === "login" || to.name === "registration")) {
+    next({ name: "projects" });
+    return;
+  }
 
-//   next();
-// });
+  next();
+});
 
 export default router;
