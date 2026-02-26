@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { computed, nextTick, reactive, ref } from "vue";
+import { computed, nextTick, ref } from "vue";
 import * as Y from "yjs";
 import { HocuspocusProvider } from "@hocuspocus/provider";
 
@@ -12,7 +12,6 @@ export const useDocumentStore = defineStore("document", () => {
 
   const currentDocId = ref("");
   const isConnected = ref(false);
-
   const awarenessStates = ref([]);
 
   const generateUserColor = (name) => {
@@ -33,67 +32,63 @@ export const useDocumentStore = defineStore("document", () => {
 
     currentDocId.value = docId;
 
-    if (!ydoc.value) {
-      ydoc.value = new Y.Doc();
-      ytext.value = ydoc.value.getText("quill");
-    }
+    ydoc.value = new Y.Doc();
+    ytext.value = ydoc.value.getText("quill");
 
-    if (provider.value) {
-      provider.value.destroy();
-    }
-
-    const username =
-      localStorage.getItem("username") || "Неизвестный пользователь";
+    const username = localStorage.getItem("username") || "Неизвестный пользователь";
 
     provider.value = new HocuspocusProvider({
       url: url,
       name: docId,
       document: ydoc.value,
       token: token,
+      
+      onConnect: () => {
+        isConnected.value = true;
+        console.log("Подключено к документу:", docId);
+        
+        provider.value.awareness.setLocalState({
+          name: username,
+          color: generateUserColor(username),
+        });
+      },
+      
+      onDisconnect: () => {
+        isConnected.value = false;
+        console.log("Отключено от документа");
+      },
+      
+      onAwarenessUpdate: () => {
+        updateAwarenessStates();
+      }
     });
-
-    const awareness = provider.value.awareness;
 
     const updateAwarenessStates = () => {
       try {
-        const states = awareness.getStates();
-
+        const states = provider.value.awareness.getStates();
         awarenessStates.value = Array.from(states.values()).map((state) => ({
-          clientId: state.clientId || "unknown",
-          name:
-            state.name ||
-            state.user?.name ||
-            `User ${Math.random().toString(36).slice(-4)}`,
-          color:
-            state.color ||
-            state.user?.color ||
-            generateUserColor(state.name || "user"),
-          colorLight: state.colorLight || "#fff",
+          clientId: state.clientId || Math.random(),
+          name: state.name || "Неизвестный",
+          color: state.color || generateUserColor(state.name || "user"),
         }));
       } catch (e) {
         console.log("Ошибка обновления:", e);
-        awarenessStates.value = [];
       }
     };
 
-    awareness.on("change", updateAwarenessStates);
-
-    await nextTick();
-    updateAwarenessStates();
-
-    awareness.setLocalState({
-      name: username,
-      color: generateUserColor(username),
-    });
+    provider.value.awareness.on("change", updateAwarenessStates);
+    nextTick(() => updateAwarenessStates());
   };
 
   const disconnect = () => {
     if (provider.value) {
       provider.value.destroy();
       provider.value = null;
-      isConnected.value = false;
-      console.log("Отключен от сервера");
     }
+    ydoc.value = null;
+    ytext.value = null;
+    isConnected.value = false;
+    awarenessStates.value = [];
   };
 
   const visibleUsers = computed(() => {

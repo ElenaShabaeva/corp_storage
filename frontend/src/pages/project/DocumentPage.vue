@@ -4,11 +4,7 @@
       <h1 class="title">{{ route.params.name }}</h1>
       <div class="editor__body">
         <div class="editor__field">
-          <div ref="quillContainer" class="editor__quill"></div>
-          <!-- <div class="editor__indicator">
-            <span>Сохраненение</span>
-            <span>Сохранено</span>
-          </div> -->
+          <div ref="editorContainer" class="editor__quill" style="height: 490px;"></div>
         </div>
 
         <div class="editor__block">
@@ -41,20 +37,145 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
-import { useDocumentStore } from '../../store/documents'
+import { onMounted, onUnmounted, ref, nextTick } from "vue";
+import { useRoute } from "vue-router";
+import { useDocumentStore } from "../../store/documents";
+import Quill from "quill";
+import "quill/dist/quill.snow.css";
 
-const store = useDocumentStore()
-const route = useRoute()
+const store = useDocumentStore();
+const route = useRoute();
+const editorContainer = ref(null);
+let quill = null;
+let isFromYjs = false;
+let isFromQuill = false;
+
+const deltaToText = (delta) => {
+  let text = '';
+  delta.ops.forEach(op => {
+    if (typeof op.insert === 'string') {
+      text += op.insert;
+    }
+  });
+  return text.replace(/\n$/, '');
+};
 
 onMounted(async () => {
-  await store.connect(route.params.id)
-})
+  await store.connect(route.params.id);
+  
+  quill = new Quill(editorContainer.value, {
+    theme: "snow",
+    modules: {
+      toolbar: [
+        [{ header: [1, 2, 3, 4, 5, 6, false] }],
+        ["bold", "italic", "underline", "strike"],
+        [{ color: [] }, { background: [] }],
+        [],
+        ["blockquote"],
+        [{ list: "ordered" }, { list: "bullet" }],
+        [{ indent: "-1" }, { indent: "+1" }],
+        [{ align: [] }],
+        ["link",],
+        ["clean"]
+      ]
+    },
+    placeholder: "Начните печатать..."
+  });
+
+  await nextTick();
+
+  if (store.ytext.length > 0) {
+    try {
+      const savedDelta = JSON.parse(store.ytext.toString());
+      if (savedDelta.ops) {
+        quill.setContents(savedDelta);
+      } else {
+        quill.setText(store.ytext.toString());
+      }
+    } catch {
+      quill.setText(store.ytext.toString());
+    }
+  }
+
+  const yObserver = () => {
+    if (isFromQuill) return;
+    
+    isFromYjs = true;
+    
+    const selection = quill.getSelection();
+    const yContent = store.ytext.toString();
+    
+    try {
+      const yDelta = JSON.parse(yContent);
+      if (yDelta.ops) {
+        quill.setContents(yDelta);
+      } else {
+        quill.setText(yContent);
+      }
+    } catch {
+      quill.setText(yContent);
+    }
+
+    nextTick(() => {
+      if (selection && quill.hasFocus()) {
+        const length = quill.getLength();
+        const newPos = Math.min(selection.index, length - 1);
+        quill.setSelection(newPos, 0);
+      }
+    });
+    
+    isFromYjs = false;
+  };
+  
+  store.ytext.observe(yObserver);
+
+  quill.on('text-change', (delta, oldDelta, source) => {
+    if (source === 'user' && !isFromYjs) {
+      isFromQuill = true;
+      
+      const currentDelta = quill.getContents();
+      
+      const deltaJson = JSON.stringify(currentDelta);
+      
+      store.ydoc.transact(() => {
+        store.ytext.delete(0, store.ytext.length);
+        store.ytext.insert(0, deltaJson);
+      }, 'local');
+      
+      const plainText = deltaToText(currentDelta);
+      
+      isFromQuill = false;
+    }
+  });
+
+  quill.on('selection-change', (range) => {
+    if (!range && !isFromYjs && !isFromQuill) {
+      const currentDelta = quill.getContents();
+      const deltaJson = JSON.stringify(currentDelta);
+      
+      store.ydoc.transact(() => {
+        store.ytext.delete(0, store.ytext.length);
+        store.ytext.insert(0, deltaJson);
+      }, 'local');
+    }
+  });
+});
 
 onUnmounted(() => {
-  store.disconnect()
-})
+  if (quill) {
+    const currentDelta = quill.getContents();
+    const deltaJson = JSON.stringify(currentDelta);
+    
+    store.ydoc.transact(() => {
+      store.ytext.delete(0, store.ytext.length);
+      store.ytext.insert(0, deltaJson);
+    }, 'local');
+    
+    quill = null;
+  }
+  
+  store.disconnect();
+});
 </script>
 
 <style lang="less">
@@ -71,18 +192,26 @@ onUnmounted(() => {
     column-gap: 20px;
   }
 
-  &__indicator {
-    position: absolute;
-    top: 5px;
-    right: 8px;
-    padding: 4px 10px;
-    border-radius: 6px;
-    background-color: @border-extralight;
-  }
-
   &__field {
     position: relative;
     width: 100%;
+    flex: 1;
+  }
+
+  &__indicator {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid #e0e0e0;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   }
 
   &__block {
@@ -99,65 +228,76 @@ onUnmounted(() => {
   }
 
   &__user {
-    width: 32px;
-    height: 32px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s ease;
+    border: 2px solid white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 
     &:hover {
       transform: scale(1.1);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
   }
 
   &__user-initials {
     font-size: 12px;
     font-weight: 600;
-    color: white;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    color: @white;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
   }
 
   &__others {
-    width: 32px;
-    height: 32px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: @skeleton;
+    background: #f0f0f0;
+    border: 2px solid white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     font-size: 12px;
-    user-select: none;
+    font-weight: 600;
     cursor: pointer;
-  }
+    transition: all 0.2s ease;
 
-  &__others-count {
-    font-weight: 700;
-    text-shadow: none;
+    &:hover {
+      transform: scale(1.1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
   }
 
   &__quill {
     font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    height: 490px;
-    border: 1px solid @border-light;
+    min-height: 500px;
+    background: white;
+    border-radius: 8px;
   }
 }
 
 .ql-toolbar {
-  border-top: 1px solid @border-light;
-  border-left: 1px solid @border-light;
-  border-right: 1px solid @border-light;
+  border: 1px solid #e0e0e0;
   border-radius: 8px 8px 0 0;
+  background: #f8f9fa;
 }
 
 .ql-container {
-  height: calc(400px - 50px);
-  border-bottom: 1px solid @border-light;
-  border-left: 1px solid @border-light;
-  border-right: 1px solid @border-light;
+  border: 1px solid #e0e0e0;
+  border-top: none;
   border-radius: 0 0 8px 8px;
+  min-height: 450px;
+  font-size: 14px;
+  
+  .ql-editor {
+    min-height: 450px;
+    font-size: 14px;
+    line-height: 1.6;
+  }
 }
 </style>
