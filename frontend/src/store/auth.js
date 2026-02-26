@@ -23,6 +23,7 @@ export const useAuthStore = defineStore("auth", () => {
       const data = await authService.registration(user);
       token.value = data.token_info.token;
       localStorage.setItem("token", data.token_info.token);
+      localStorage.setItem('username', user.login)
 
       router.push({ name: "profile" });
       store.connectSSE()
@@ -47,6 +48,7 @@ export const useAuthStore = defineStore("auth", () => {
       const data = await authService.authorization(user);
       token.value = data.token_info.token;
       localStorage.setItem("token", data.token_info.token);
+      localStorage.setItem('username', user.login)
 
       router.push({ name: "profile" });
       store.connectSSE()
