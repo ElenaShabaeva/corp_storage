@@ -1,5 +1,5 @@
 <template>
-  <li class="document">
+  <li class="document" @click="goToDocument">
     <div class="document__info">
       <p>{{ document?.name }}</p>
       <span>Создал - {{ document?.creator }}</span>
@@ -12,6 +12,7 @@
 
 <script setup>
 import { useProjectsStore } from '../store/projects';
+import router from '../router';
 
 const props = defineProps({
   document: {
@@ -24,6 +25,10 @@ const store = useProjectsStore()
 function handleDelete() {
   store.openShowDeleteDocumentModal(props.document.id)
 }
+
+const goToDocument = () => {
+  router.push(`/document/${props.document.id}/${props.document.name}`)
+};
 </script>
 
 <style lang="less">
@@ -32,6 +37,13 @@ function handleDelete() {
   grid-template-columns: 1fr auto;
   align-items: start;
   column-gap: 20px;
+  cursor: pointer;
+
+  &:hover{
+    p{
+      color: @blue;
+    }
+  }
   
   &:not(:last-child) {
     padding-bottom: 12px;
@@ -47,6 +59,7 @@ function handleDelete() {
       margin: 0;
       font-size: 18px;
       font-weight: 500;
+      transition: all 0.3s;
     }
 
     span {
