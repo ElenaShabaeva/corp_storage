@@ -2,7 +2,7 @@
   <div class="documents">
     <DocumentsSkeleton v-if="store.documentsLoading"/>
     <div class="documents__wrapper" v-else>
-      <div class="documents__none" v-if="store.projectDocuments?.count === 0">
+      <div class="documents__none" v-if="store.projectDocuments?.length === 0">
         <p class="none">В проекте нет документов</p>
         <div class="documents__top-buttons">
           <my-button :filled="true" type="button" @click="handleCreate">Создать</my-button>
