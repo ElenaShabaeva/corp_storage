@@ -16,7 +16,6 @@
           <router-link :to="`/project/${route.params.id}/documents`" class="link">
             Документы
           </router-link>
-          <my-text-button v-if="store.projectOwner">Изменить название / описание</my-text-button>
         </nav>
       </div>
       <router-view />
@@ -105,10 +104,6 @@ onMounted(async () => {
     padding-left: 4px;
     padding-bottom: 4px;
     border-bottom: 1px solid @border-light;
-
-    button{
-      margin-left: auto;
-    }
   }
 }
 
