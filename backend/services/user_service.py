@@ -265,8 +265,6 @@ class UserService:
         try:
             _, jti = decode_jwt(token=refresh_token)
             async with self.uow.start():
-                refresh_token = await self.uow.refresh_tokens.get_by_jti(jti=jti)
-                await self.uow.refresh_tokens.set_revoked_at(refresh_token=refresh_token)
                 user_id, _ = decode_jwt(token=encoded_jwt)
                 rowcount = await self.uow.users.delete(user_id=user_id)
             response.delete_cookie(
