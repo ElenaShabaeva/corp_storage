@@ -1,18 +1,20 @@
 <template>
   <li class="members-item">
     <span>{{ member.login }}</span>
-    <my-text-button type="button" v-if="store.projectOwner" @click="handleKick">Исключить из проекта</my-text-button>
+    <my-text-button type="button" v-if="store.projectOwner && !isFirst" @click="handleKick">Исключить из проекта</my-text-button>
   </li>
 </template>
 
 <script setup>
 import { useProjectsStore } from '../store/projects';
 
+
 const props = defineProps({
   member: {
     type: Object,
   },
-  isOwner: Boolean
+  isOwner: Boolean,
+  isFirst: Boolean
 });
 
 const store = useProjectsStore()

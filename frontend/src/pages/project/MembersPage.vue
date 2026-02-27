@@ -14,8 +14,9 @@
       </div>
       <ul class="members__list">
         <MembersItem
-          v-for="member in store.projectMembers"
+          v-for="(member, index) in store.projectMembers"
           :member="member"
+          :isFirst="index === 0"
           :key="member.id"
         />
       </ul>
