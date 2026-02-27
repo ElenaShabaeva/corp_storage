@@ -48,7 +48,6 @@ const handleAuthorization = async () => {
     isDirtyPassword.value = false;
 
   } catch (e) {
-    user.password = "";
   }
 };
 

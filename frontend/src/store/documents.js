@@ -15,6 +15,7 @@ export const useDocumentStore = defineStore("document", () => {
   const awarenessStates = ref([]);
 
   const isLoading = ref(false);
+  const serverError = ref("");
 
   const generateUserColor = (name) => {
     const seed = name || "user";
@@ -33,6 +34,7 @@ export const useDocumentStore = defineStore("document", () => {
     }
 
     isLoading.value = true;
+    serverError.value = "";
 
     currentDocId.value = docId;
 
@@ -63,8 +65,10 @@ export const useDocumentStore = defineStore("document", () => {
       },
 
       onDisconnect: () => {
+        serverError.value = "Не удалось подключиться к документу";
         isConnected.value = false;
         console.log("Отключено от документа");
+        setTimeout(() => (serverError.value = ""), 4000);
       },
 
       onAwarenessUpdate: () => {
@@ -73,7 +77,9 @@ export const useDocumentStore = defineStore("document", () => {
 
       onError: (error) => {
         console.error("Ошибка подключения:", error);
+        serverError.value = "Не удалось подключиться к документу";
         isLoading.value = false;
+        setTimeout(() => (serverError.value = ""), 4000);
       },
     });
 
@@ -137,5 +143,6 @@ export const useDocumentStore = defineStore("document", () => {
     getUserInitials,
     connect,
     disconnect,
+    serverError,
   };
 });

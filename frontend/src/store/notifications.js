@@ -305,6 +305,8 @@ export const useNotificationsStore = defineStore("notifications", () => {
     if (!token) return false;
 
     try {
+      await getNotificationsInvites()
+      await getNotificationsMessages()
       return await connectSSE();
     } catch (error) {
       console.error("Initialize error:", error);

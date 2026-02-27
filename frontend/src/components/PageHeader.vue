@@ -18,7 +18,7 @@
               <router-link class="link" to="/notification"
                 >Уведомления</router-link
               >
-              <span v-if="notificationsStore.hasUnread"></span>
+              <span v-if="hasUnread"></span>
             </div>
             <router-link class="link" to="/" @click.prevent="handleLogout"
               >Выйти</router-link
@@ -37,8 +37,10 @@ import { useAuthStore } from "../store/auth";
 import { useNotificationsStore } from "../store/notifications";
 
 const store = useAuthStore();
-const notificationsStore = useNotificationsStore()
 const { isLoggedIn } = storeToRefs(store);
+
+const notificationsStore = useNotificationsStore();
+const { hasUnread } = storeToRefs(notificationsStore);
 
 async function handleLogout() {
   try {

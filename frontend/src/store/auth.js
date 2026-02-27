@@ -26,7 +26,7 @@ export const useAuthStore = defineStore("auth", () => {
       localStorage.setItem('username', user.login)
 
       router.push({ name: "profile" });
-      store.connectSSE()
+      await store.initialize();
     } catch (e) {
       if (e.message === 'Пользователь с таким "Логин" уже существует') {
         fieldError.value = e.message;
@@ -50,8 +50,8 @@ export const useAuthStore = defineStore("auth", () => {
       localStorage.setItem("token", data.token_info.token);
       localStorage.setItem('username', user.login)
 
-      router.push({ name: "profile" });
-      store.connectSSE()
+      router.push({ name: "projects" });
+      await store.initialize();
     } catch (e) {
       if (e.message === "Неправильный логин или пароль") {
         fieldError.value = e.message;
@@ -73,6 +73,7 @@ export const useAuthStore = defineStore("auth", () => {
 
       token.value = null;
       localStorage.removeItem("token");
+      localStorage.removeItem('username')
 
       router.push({ name: "login" });
       
@@ -102,8 +103,10 @@ export const useAuthStore = defineStore("auth", () => {
   }
 
   async function deleteAccount() {
+    loading.value = false
     token.value = null;
     localStorage.removeItem("token");
+    localStorage.removeItem('username')
 
     router.push({ name: "login" });
   }

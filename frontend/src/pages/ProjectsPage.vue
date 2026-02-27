@@ -1,6 +1,7 @@
 <template>
   <div class="projects">
-    <div class="projects__wrapper">
+    <ProjectsPageSkeleton v-if="store.initialLoading"/>
+    <div class="projects__wrapper" v-else>
       <my-button :filled="true" type="button" @click="showCreateModal">Создать проект</my-button>
       <ProjectsListing class="projects__listing"/>
     </div>
@@ -30,6 +31,8 @@ import ProjectsListing from '../components/ProjectsListing.vue';
 import { useProjectsStore } from '../store/projects';
 import Loading from '../components/Loading.vue';
 import LeaveProject from '../components/LeaveProject.vue';
+import ProjectsSkeleton from '../components/skeleton/ProjectsSkeleton.vue';
+import ProjectsPageSkeleton from '../components/skeleton/ProjectsPageSkeleton.vue';
 
 const store = useProjectsStore()
 

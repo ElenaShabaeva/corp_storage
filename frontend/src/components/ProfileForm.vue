@@ -26,14 +26,14 @@
       />
     </div>
     <div class="form__buttons">
-      <my-button :filled="true" type="submit" v-if="isFormValid">Обновить данные</my-button>
+      <my-button :filled="true" type="submit" :disabled="!isFormValid">Обновить данные</my-button>
       <my-button type="button" @click="showModal">Удалить аккаунт</my-button>
     </div>
   </form>
 </template>
 
 <script setup>
-import { computed, reactive, watch, ref } from "vue";
+import { computed, reactive, watch, ref, nextTick } from "vue";
 import { useProfileStore } from "../store/profile";
 
 const store = useProfileStore();
@@ -56,10 +56,16 @@ watch(() => store.user, (newUser) => {
 
 async function handleUpdate() {
   try {
+    console.log("1. user до отправки:", user);
+    console.log("1. store.user до:", store.user);
+
     await store.updateProfile({
       name: user.name,
-      surname: user.surname
-    })
+      surname: user.surname,
+    });
+
+    await nextTick();
+    Object.assign(user, userData.value);
   } catch (e) {}
 }
 

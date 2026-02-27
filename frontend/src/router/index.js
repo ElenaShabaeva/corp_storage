@@ -2,6 +2,8 @@ import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "../store/auth";
 import { useProfileStore } from "../store/profile";
 import { useProjectsStore } from "../store/projects";
+import { useNotificationsStore } from "../store/notifications";
+import { useDocumentStore } from "../store/documents";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -86,6 +88,10 @@ router.beforeEach((to, from, next) => {
   const authStore = useAuthStore();
   const profileStore = useProfileStore()
   const projectsStore = useProjectsStore()
+  const notificationsStore = useNotificationsStore()
+  const documentsStore = useDocumentStore()
+
+  authStore.fieldError = ''
 
   authStore.serverError = ''
   profileStore.serverError = ''
@@ -93,6 +99,10 @@ router.beforeEach((to, from, next) => {
 
   profileStore.success = ''
   projectsStore.success = ''
+
+  notificationsStore.serverError = ''
+
+  documentsStore.serverError = ''
 
   if (to.meta.requiresAuth && !authStore.token) {
     next({

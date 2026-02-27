@@ -1,11 +1,12 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import api from "../services/api";
+import router from "../router";
 
 export const useProjectsStore = defineStore("projects", () => {
   const projects = ref(null);
   const projectInfo = ref(null);
-  const projectMembers = ref(null);
+  const projectMembers = ref([]);
   const projectDocuments = ref([]);
   const projectOwner = ref(false);
 
@@ -31,30 +32,12 @@ export const useProjectsStore = defineStore("projects", () => {
   const currentMember = ref(null);
   const currentDocument = ref(null);
 
-  const savedProjects = () => {
-    try {
-      const save = localStorage.getItem("projects");
-      if (save) {
-        projects.value = JSON.parse(save);
-        return true;
-      }
-    } catch (e) {
-      localStorage.removeItem("projects");
-    }
-    return false;
-  };
-
   async function getProjects() {
     try {
       initialLoading.value = true;
-
-      if (savedProjects()) {
-        return projects.value;
-      }
       const data = await api.request("/project/all");
 
       projects.value = data.projects;
-      localStorage.setItem("projects", JSON.stringify(data.projects));
     } catch (e) {
       projects.value = null;
     } finally {
@@ -79,7 +62,7 @@ export const useProjectsStore = defineStore("projects", () => {
         projects.value = [newProject];
       }
 
-      localStorage.setItem("projects", JSON.stringify(projects.value));
+      router.push(`/project/${newProject.id}`)
     } catch (e) {
       serverError.value = "Не удалось создать проект";
 
@@ -112,7 +95,7 @@ export const useProjectsStore = defineStore("projects", () => {
       const data = await api.request(`/project/members?project_id=${id}`);
       serverError.value = "";
 
-      projectMembers.value = data;
+      projectMembers.value = data.members;
     } catch (e) {
       serverError.value = "Не удалось загрузить участников";
       setTimeout(() => (serverError.value = ""), 4000);
@@ -143,7 +126,7 @@ export const useProjectsStore = defineStore("projects", () => {
       if (e.message?.includes("409") || e.status === 409) {
         serverError.value = `Участник '${nickname}' уже добавлен в проект`;
       } else {
-        serverError.value = `Не удалось добавить '${nickname}': ${e.message}`;
+        serverError.value = `Не удалось добавить '${nickname}'`;
       }
       setTimeout(() => (serverError.value = ""), 4000);
     } finally {
@@ -169,10 +152,6 @@ export const useProjectsStore = defineStore("projects", () => {
         if (projectIndex !== -1) {
           projects.value.splice(projectIndex, 1);
         }
-
-        localStorage.setItem("projects", JSON.stringify(projects.value));
-      } else {
-        localStorage.removeItem("projects");
       }
 
       success.value = `Вы покинули проект '${currentProject.value.name}'`;
@@ -203,6 +182,7 @@ export const useProjectsStore = defineStore("projects", () => {
       console.log(data);
 
       success.value = `'${currentMember.value}' исключен из проекта`;
+      projectMembers.value = projectMembers.value.filter((m) => m.login !== currentMember.value)
       setTimeout(() => (success.value = ""), 4000);
     } catch (e) {
       serverError.value = `Не удалось исключить из проекта '${currentMember.value}'`;

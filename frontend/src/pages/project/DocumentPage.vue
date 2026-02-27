@@ -34,6 +34,11 @@
       </div>
     </div>
   </div>
+  <Transition name="modal" appear v-if="store.serverError">
+    <div class="modal" :class="{ 'modal--error': store.serverError }">
+      {{ store.serverError }}
+    </div>
+  </Transition>
 </template>
 
 <script setup>
@@ -322,5 +327,22 @@ onUnmounted(() => {
     font-size: 14px;
     line-height: 1.6;
   }
+}
+
+.modal-move,
+.modal-enter-active,
+.modal-leave-active {
+  transition: all 0.4s ease;
+}
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+  transform: translateY(-92px);
+}
+
+.modal-enter-to,
+.modal-leave-from {
+  opacity: 1;
+  transform: translateY(0);
 }
 </style>
