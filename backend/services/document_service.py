@@ -3,8 +3,6 @@ from utils.uow import UnitOfWork
 from uuid import UUID
 from utils.jwt_utils import decode_jwt
 from jwt import ExpiredSignatureError, DecodeError
-from pathlib import Path
-from docx import Document
 from datetime import datetime
 from schemas.response.document_response import (
     DocumentResponseSchema,
@@ -42,33 +40,17 @@ class DocumentService:
                         status_code=status.HTTP_404_NOT_FOUND,
                         detail="Проект не найден"
                     )
-                filename = f"{filename}.docx"
-                file_path = Path("storage/documents") / str(project.id) / filename
-                if file_path.exists():
-                    raise HTTPException(
-                        status_code=status.HTTP_409_CONFLICT,
-                        detail="Файл с таким названием уже существует"
-                    )
-                file_path.parent.mkdir(parents=True, exist_ok=True)
-                new_document = Document()
-                try:
-                    new_document.save(str(file_path))
-                except OSError:
-                    raise HTTPException(
-                        status_code=status.HTTP_409_CONFLICT,
-                        detail="Нельзя создать файл с таким названием"
-                    )
                 created_at = datetime.now()
 
                 document_db = await self.uow.documents.post(
-                    file_path=str(file_path),
+                    filename=filename,
                     created_at=created_at,
                     project_id=project.id,
                     creator_id=user.id
                 )
             return DocumentResponseSchema(
                 id=document_db.id,
-                name=Path(document_db.file_path).name,
+                name=filename,
                 creator=user.login,
                 can_delete=True
             )
@@ -101,7 +83,7 @@ class DocumentService:
                 count=len(documents),
                 documents=[DocumentResponseSchema(
                     id=document.id,
-                    name=Path(document.file_path).name,
+                    name=document.filename,
                     creator=document.creator.login,
                     can_delete=document.creator_id == user_id or project.creator_id == user_id
                 ) for document in documents]
@@ -137,14 +119,6 @@ class DocumentService:
                     raise HTTPException(
                         status_code=status.HTTP_403_FORBIDDEN,
                         detail="Нет прав"
-                    )
-                file_path = Path(document.file_path)
-                try:
-                    file_path.unlink()
-                except OSError:
-                    raise HTTPException(
-                        status_code=status.HTTP_409_CONFLICT,
-                        detail="Ошибка при удалении файла"
                     )
                 rowcount = await self.uow.documents.delete(document_id=document_id)
 

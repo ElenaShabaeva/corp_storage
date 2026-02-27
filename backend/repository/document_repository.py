@@ -15,11 +15,11 @@ class DocumentRepository:
             self,
             project_id: UUID,
             creator_id: UUID,
-            file_path: str,
+            filename: str,
             created_at: datetime
     ) -> Document:
         document_db = Document(
-            file_path=file_path,
+            filename=filename,
             created_at=created_at,
             project_id=project_id,
             creator_id=creator_id

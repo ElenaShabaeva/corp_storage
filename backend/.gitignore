@@ -14,3 +14,4 @@ cert.key
 cert.crt
 *.orig
 storage/
+.env.docker
