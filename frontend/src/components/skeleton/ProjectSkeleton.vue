@@ -1,6 +1,16 @@
 <template>
   <div class="skeleton">
     <div class="skeleton__wrapper">
+      <div class="skeleton__top">
+        <div class="skeleton__info">
+          <div class="skeleton__name"></div>
+          <div class="skeleton__description"></div>
+        </div>
+        <div class="skeleton__nav">
+          <div class="skeleton__link"></div>
+          <div class="skeleton__link"></div>
+        </div>
+      </div>
       <div class="skeleton__members">
         <div class="skeleton__members-top">
           <div class="skeleton__line"></div>
