@@ -1,10 +1,12 @@
 <template>
   <div class="project">
-    <MemberSkeleton v-if="isLoading "/>
+    <ProjectSkeleton v-if="store.infoLoading" />
     <div class="project__wrapper" v-else>
       <div class="project__top">
         <div class="project__info">
-          <h1 class="title">{{ store.projectInfo?.name || 'Название проекта' }}</h1>
+          <h1 class="title">
+            {{ store.projectInfo?.name || "Название проекта" }}
+          </h1>
           <p>
             {{ store.projectInfo?.description || "У проекта нет описания" }}
           </p>
@@ -13,7 +15,10 @@
           <router-link :to="`/project/${route.params.id}/members`" class="link">
             Участники
           </router-link>
-          <router-link :to="`/project/${route.params.id}/documents`" class="link">
+          <router-link
+            :to="`/project/${route.params.id}/documents`"
+            class="link"
+          >
             Документы
           </router-link>
         </nav>
@@ -22,8 +27,8 @@
     </div>
   </div>
 
-  <InviteMemberForm v-if="store.showInviteModal"/>
-  <KickMember v-if="store.showKickModal"/>
+  <InviteMemberForm v-if="store.showInviteModal" />
+  <KickMember v-if="store.showKickModal" />
 
   <Loading :title="'Идет отправка приглашения'" v-if="store.inviteLoading" />
   <Loading :title="'Идет исключение из проекта'" v-if="store.kickLoading" />
@@ -44,16 +49,16 @@
 import { useRoute } from "vue-router";
 import { useProjectsStore } from "../../store/projects";
 import { computed, onMounted } from "vue";
-import MemberSkeleton from "../../components/skeleton/MemberSkeleton.vue";
 import InviteMemberForm from "../../components/InviteMemberForm.vue";
 import KickMember from "../../components/KickMember.vue";
+import ProjectSkeleton from "../../components/skeleton/ProjectSkeleton.vue";
 
 const route = useRoute();
 const id = route.params.id;
 
 const store = useProjectsStore();
 
-const isLoading = computed(() => 
+const isLoading = computed(() =>
   store.infoLoading || store.membersLoading
 )
 
@@ -63,13 +68,13 @@ onMounted(async () => {
   } catch (e) {
     console.error('Ошибка проекта:', e)
   }
-  
+
   try {
     await store.getProjectMembers(route.params.id)
   } catch (e) {
     console.error('Ошибка участников:', e)
   }
-})
+});
 </script>
 
 <style lang="less">
