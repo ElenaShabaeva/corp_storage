@@ -26,7 +26,7 @@ export const useProfileStore = defineStore("profile", () => {
     }
   }
 
-  async function updateProfile(user) {
+  async function updateProfile(userData) {
     try {
       updateLoading.value = true;
       serverError.value = "";
@@ -34,10 +34,11 @@ export const useProfileStore = defineStore("profile", () => {
 
       const updatedUser = await api.request("/user/update", {
         method: "PATCH",
-        body: JSON.stringify(user),
+        body: JSON.stringify(userData),
       });
-
+      
       user.value = updatedUser;
+      
       success.value = "Данные успешно обновлены";
 
       setTimeout(() => (success.value = ""), 4000);
