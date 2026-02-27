@@ -32,30 +32,12 @@ export const useProjectsStore = defineStore("projects", () => {
   const currentMember = ref(null);
   const currentDocument = ref(null);
 
-  const savedProjects = () => {
-    try {
-      const save = localStorage.getItem("projects");
-      if (save) {
-        projects.value = JSON.parse(save);
-        return true;
-      }
-    } catch (e) {
-      localStorage.removeItem("projects");
-    }
-    return false;
-  };
-
   async function getProjects() {
     try {
       initialLoading.value = true;
-
-      if (savedProjects()) {
-        return projects.value;
-      }
       const data = await api.request("/project/all");
 
       projects.value = data.projects;
-      localStorage.setItem("projects", JSON.stringify(data.projects));
     } catch (e) {
       projects.value = null;
     } finally {
@@ -81,8 +63,6 @@ export const useProjectsStore = defineStore("projects", () => {
       }
 
       router.push(`/project/${newProject.id}`)
-
-      localStorage.setItem("projects", JSON.stringify(projects.value));
     } catch (e) {
       serverError.value = "Не удалось создать проект";
 
@@ -172,10 +152,6 @@ export const useProjectsStore = defineStore("projects", () => {
         if (projectIndex !== -1) {
           projects.value.splice(projectIndex, 1);
         }
-
-        localStorage.setItem("projects", JSON.stringify(projects.value));
-      } else {
-        localStorage.removeItem("projects");
       }
 
       success.value = `Вы покинули проект '${currentProject.value.name}'`;
