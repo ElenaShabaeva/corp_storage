@@ -26,7 +26,7 @@ export const useAuthStore = defineStore("auth", () => {
       localStorage.setItem('username', user.login)
 
       router.push({ name: "profile" });
-      store.connectSSE()
+      await store.initialize();
     } catch (e) {
       if (e.message === 'Пользователь с таким "Логин" уже существует') {
         fieldError.value = e.message;
@@ -51,7 +51,7 @@ export const useAuthStore = defineStore("auth", () => {
       localStorage.setItem('username', user.login)
 
       router.push({ name: "profile" });
-      store.connectSSE()
+      await store.initialize();
     } catch (e) {
       if (e.message === "Неправильный логин или пароль") {
         fieldError.value = e.message;
