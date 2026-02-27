@@ -9,7 +9,6 @@
         </div>
 
         <div class="editor__block">
-          <my-text-button :color="true">Экспорт</my-text-button>
           <div class="editor__users">
             <div
               v-for="user in store.visibleUsers"
