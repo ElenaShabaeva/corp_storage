@@ -5,7 +5,7 @@
       <span>Создал - {{ document?.creator }}</span>
     </div>
     <div class="document__buttons">
-      <my-text-button type="button" v-if="document?.can_delete" @click="handleDelete">Удалить</my-text-button>
+      <my-text-button type="button" v-if="document?.can_delete" @click.stop="handleDelete">Удалить</my-text-button>
     </div>
   </li>
 </template>
