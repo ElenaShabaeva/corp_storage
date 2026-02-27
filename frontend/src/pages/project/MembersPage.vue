@@ -3,7 +3,7 @@
     <div class="members__top">
       <span
         >Участников в проекте:
-        {{ store.projectMembers?.members_count || 0 }}</span
+        {{ store.projectMembers?.length }}</span
       >
       <my-button type="button" :filled="true" v-if="store.projectOwner" @click="showModal"
         >Добавить участника</my-button
@@ -11,7 +11,7 @@
     </div>
     <ul class="members__list">
       <MembersItem
-        v-for="member in store.projectMembers?.members"
+        v-for="member in store.projectMembers"
         :member="member"
         :key="member.id"
       />
