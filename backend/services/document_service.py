@@ -1,6 +1,6 @@
 from fastapi import HTTPException, status
 from utils.uow import UnitOfWork
-from uuid import UUID, uuid4
+from uuid import UUID
 from utils.jwt_utils import decode_jwt
 from jwt import ExpiredSignatureError, DecodeError
 from pathlib import Path

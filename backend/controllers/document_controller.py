@@ -5,7 +5,6 @@ from services.document_service import DocumentService
 from uuid import UUID
 from schemas.response.document_response import (
     DocumentResponseSchema,
-    DocumentResponseSchema,
     DocumentsResponseSchema
 )
 from schemas.response.standart_message import MessageResponseSchema
