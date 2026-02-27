@@ -159,13 +159,22 @@ class ProjectService:
                         status_code=status.HTTP_403_FORBIDDEN,
                         detail="Нет прав"
                     )
+                members_response = []
+                for member in members:
+                    if member.id == project.creator_id:
+                        members_response.insert(0, UserShortInfoSchema(
+                            id=member.id,
+                            login=member.login
+                        ))
+                    else:
+                        members_response.append(UserShortInfoSchema(
+                            id=member.id,
+                            login=member.login
+                        ))
 
             return ProjectMembersResponseSchema(
                 members_count=project.members_count,
-                members=[UserShortInfoSchema(
-                    id=member.id,
-                    login=member.login
-                ) for member in members]
+                members=members_response
             )
         except ExpiredSignatureError:
             raise HTTPException(
