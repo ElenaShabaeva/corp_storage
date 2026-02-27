@@ -5,7 +5,7 @@ import api from "../services/api";
 export const useProjectsStore = defineStore("projects", () => {
   const projects = ref(null);
   const projectInfo = ref(null);
-  const projectMembers = ref(null);
+  const projectMembers = ref([]);
   const projectDocuments = ref([]);
   const projectOwner = ref(false);
 
@@ -112,7 +112,7 @@ export const useProjectsStore = defineStore("projects", () => {
       const data = await api.request(`/project/members?project_id=${id}`);
       serverError.value = "";
 
-      projectMembers.value = data;
+      projectMembers.value = data.members;
     } catch (e) {
       serverError.value = "Не удалось загрузить участников";
       setTimeout(() => (serverError.value = ""), 4000);
@@ -143,7 +143,7 @@ export const useProjectsStore = defineStore("projects", () => {
       if (e.message?.includes("409") || e.status === 409) {
         serverError.value = `Участник '${nickname}' уже добавлен в проект`;
       } else {
-        serverError.value = `Не удалось добавить '${nickname}': ${e.message}`;
+        serverError.value = `Не удалось добавить '${nickname}'`;
       }
       setTimeout(() => (serverError.value = ""), 4000);
     } finally {
@@ -203,6 +203,7 @@ export const useProjectsStore = defineStore("projects", () => {
       console.log(data);
 
       success.value = `'${currentMember.value}' исключен из проекта`;
+      projectMembers.value = projectMembers.value.filter((m) => m.login !== currentMember.value)
       setTimeout(() => (success.value = ""), 4000);
     } catch (e) {
       serverError.value = `Не удалось исключить из проекта '${currentMember.value}'`;
