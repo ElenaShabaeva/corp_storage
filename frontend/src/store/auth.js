@@ -73,6 +73,7 @@ export const useAuthStore = defineStore("auth", () => {
 
       token.value = null;
       localStorage.removeItem("token");
+      localStorage.removeItem('username')
 
       router.push({ name: "login" });
       
@@ -102,8 +103,10 @@ export const useAuthStore = defineStore("auth", () => {
   }
 
   async function deleteAccount() {
+    loading.value = false
     token.value = null;
     localStorage.removeItem("token");
+    localStorage.removeItem('username')
 
     router.push({ name: "login" });
   }
