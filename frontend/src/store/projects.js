@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import api from "../services/api";
+import router from "../router";
 
 export const useProjectsStore = defineStore("projects", () => {
   const projects = ref(null);
@@ -78,6 +79,8 @@ export const useProjectsStore = defineStore("projects", () => {
       } else {
         projects.value = [newProject];
       }
+
+      router.push(`/project/${newProject.id}`)
 
       localStorage.setItem("projects", JSON.stringify(projects.value));
     } catch (e) {
