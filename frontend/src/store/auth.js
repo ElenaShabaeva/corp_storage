@@ -50,7 +50,7 @@ export const useAuthStore = defineStore("auth", () => {
       localStorage.setItem("token", data.token_info.token);
       localStorage.setItem('username', user.login)
 
-      router.push({ name: "profile" });
+      router.push({ name: "projects" });
       await store.initialize();
     } catch (e) {
       if (e.message === "Неправильный логин или пароль") {
