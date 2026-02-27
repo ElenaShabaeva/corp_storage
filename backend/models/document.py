@@ -14,7 +14,7 @@ from sqlalchemy import (
 class Document(Base):
     __tablename__ = "document"
     id = Column(UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
-    file_path = Column(String, unique=True, nullable=False)
+    filename = Column(String, unique=True, nullable=False)
     created_at = Column(DateTime, nullable=False)
     yjs_updates = Column(BYTEA, nullable=True)
     project_id = Column(UUID(as_uuid=True), ForeignKey("project.id", ondelete="CASCADE"), nullable=False)
