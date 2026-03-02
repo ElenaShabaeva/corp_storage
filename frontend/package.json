@@ -4,15 +4,25 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {
-    "vue": "^3.5.24"
+    "@hocuspocus/provider": "^3.4.4",
+    "@microsoft/fetch-event-source": "^2.0.1",
+    "pinia": "^3.0.4",
+    "quill": "^2.0.3",
+    "quill-cursors": "^4.0.4",
+    "vue": "^3.5.24",
+    "vue-router": "^4.6.4",
+    "y-quill": "^1.0.0",
+    "y-websocket": "^3.0.0",
+    "yjs": "^13.6.29"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.1",
+    "less": "^4.5.1",
     "vite": "^7.2.4"
   }
 }
