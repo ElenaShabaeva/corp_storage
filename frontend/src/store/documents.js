@@ -2,12 +2,13 @@ import { defineStore } from "pinia";
 import { computed, nextTick, ref } from "vue";
 import * as Y from "yjs";
 import { HocuspocusProvider } from "@hocuspocus/provider";
+import { WS_URL } from "../api.config";
 
 export const useDocumentStore = defineStore("document", () => {
   const ydoc = ref(null);
   const ytext = ref(null);
   const provider = ref(null);
-  const url = "ws://26.122.80.20:1234";
+  // const url = "ws://26.122.80.20:1234";
   const token = localStorage.getItem("token");
 
   const currentDocId = ref("");
@@ -45,7 +46,7 @@ export const useDocumentStore = defineStore("document", () => {
       localStorage.getItem("username") || "Неизвестный пользователь";
 
     provider.value = new HocuspocusProvider({
-      url: url,
+      url: WS_URL,
       name: docId,
       document: ydoc.value,
       token: token,

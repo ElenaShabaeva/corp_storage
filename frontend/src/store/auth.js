@@ -91,7 +91,7 @@ export const useAuthStore = defineStore("auth", () => {
 
       const newToken = data.token_info.token;
       token.value = newToken;
-      localStorage.setItem("token");
+      localStorage.setItem("token", newToken);
 
       return newToken;
     } catch (e) {
